@@ -53,11 +53,17 @@ function render() {
   $("cooldown-value").textContent = cooldown > 0 ? duration(cooldown) : "Available now";
   $("cooldown-detail").textContent = cooldown > 0 ? "Time remaining before next request" : "No cooldown active";
   const cooldownTotal = Math.max(1, data.settings.cooldown * 60000);
-  const cooldownProgress = Math.max(0, Math.min(100, ((cooldownTotal - cooldown) / cooldownTotal) * 100));
+  const cooldownProgress = Math.max(0, Math.min(100, (cooldown / cooldownTotal) * 100));
   $("cooldown-progress").style.width = `${cooldownProgress}%`;
   $("cooldown-progress").parentElement.setAttribute("aria-valuenow", String(Math.round(cooldownProgress)));
-  $("remaining-value").textContent = `${remaining} of ${data.settings.limit} left`;
-  $("remaining-detail").textContent = remaining === 0 ? "Back again after midnight." : "Make them count.";
+  $("remaining-value").textContent = `${remaining} of ${data.settings.limit} remaining`;
+  $("remaining-detail").textContent = remaining === 0 ? "All today's requests have been used." : `${remaining} request${remaining === 1 ? "" : "s"} still available today.`;
+  const indicators = $("tea-indicators");
+  indicators.innerHTML = Array.from({length: data.settings.limit}, (_, index) => {
+    const used = index >= remaining;
+    return `<span class="tea-icon ${used ? "used" : "unused"}" aria-hidden="true">☕</span>`;
+  }).join("");
+  indicators.setAttribute("aria-label", `${remaining} of ${data.settings.limit} tea requests remaining`);
 
   const latest = latestRequest();
   $("current-request").hidden = !latest;
