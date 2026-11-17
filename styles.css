@@ -309,3 +309,6 @@
 .auth-card .back-button{margin-bottom:24px}
 #admin-logout{margin-bottom:18px}
 @media(max-width:640px){.auth-gate{margin:24px auto}.auth-card{padding:20px}}
+
+.settings-help{margin:-4px 0 18px;max-width:620px;line-height:1.6}
+#settings-form input[type="time"],#settings-form input[type="number"]{min-height:46px}
