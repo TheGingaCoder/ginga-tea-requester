@@ -95,7 +95,8 @@ function render() {
   const latestForMessage = latestRequest();
   const systemState = !data.settings.enabled ? "disabled" : !open ? "closed" : remaining === 0 ? "limit" : latestForMessage?.status === "Pending" ? "accepted" : latestForMessage?.status === "Fulfilled" ? "fulfilled" : cooldown > 0 ? "cooldown" : "ready";
   if ($("system-message").dataset.state !== systemState) setPersonality(systemState);
-  $("request-heading").textContent = allowed ? "Tea, please." : !data.settings.enabled ? "System offline." : !open ? "We're closed for tea." : remaining === 0 ? "That's enough tea today." : "Just a little longer.";
+  const currentContract = latestRequest();
+  $("request-heading").textContent = currentContract?.status === "Pending" ? "CONTRACT IN EFFECT" : allowed ? "Tea, please." : !data.settings.enabled ? "System offline." : !open ? "We're closed for tea." : remaining === 0 ? "That's enough tea today." : "Just a little longer.";
   $("request-description").textContent = allowed ? "Press below to submit your official tea request." : !data.settings.enabled ? "The administrator has suspended beverage operations." : !open ? `Requests open at ${data.settings.open} (UK time).` : remaining === 0 ? "You've reached today's request limit. Requests reopen at midnight." : `Your next request is available in ${duration(cooldown)}.`;
   requestButton.disabled = !allowed;
   requestButton.querySelector(".request-button-label").innerHTML = allowed
@@ -151,8 +152,8 @@ function submitRequest() {
 function renderAdmin() {
   const today = todayRequests(), pending = data.requests.filter(r => r.status === "Pending"), fulfilled = data.requests.filter(r => r.status === "Fulfilled");
   $("metric-today").textContent = today.length; $("metric-pending").textContent = pending.length; $("metric-fulfilled").textContent = fulfilled.length;
-  $("admin-availability").textContent = isOpen() ? "Open" : "Closed";
-  $("admin-availability").className = `status-pill ${isOpen() ? "fulfilled" : "pending"}`;
+  $("admin-availability").textContent = !data.settings.enabled ? "Disabled" : isOpen() ? "Open" : "Closed";
+  $("admin-availability").className = `status-pill ${data.settings.enabled && isOpen() ? "fulfilled" : "pending"}`;
   $("admin-availability-detail").textContent = `Requests are accepted between ${data.settings.open} and ${data.settings.close} UK time.`;
   $("open-time").value = data.settings.open; $("close-time").value = data.settings.close;
   $("system-toggle").innerHTML = data.settings.enabled ? '<i class="fa-solid fa-power-off"></i> Disable requests' : '<i class="fa-solid fa-power-off"></i> Enable requests';
