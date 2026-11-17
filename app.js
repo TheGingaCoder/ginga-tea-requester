@@ -1,5 +1,5 @@
 const STORAGE_KEY = "ginga-tea-requester:v1";
-const DEFAULTS = { settings: { open: "07:00", close: "22:00", cooldown: 60, limit: 4 }, requests: [] };
+const DEFAULTS = { settings: { open: "07:00", close: "22:00", cooldown: 60, limit: 4, enabled: true, sound: false }, requests: [] };
 let data = loadData();
 let toastTimer;
 
@@ -31,7 +31,7 @@ function cooldownMs() {
   const latest = latestRequest();
   return latest ? Math.max(0, Date.parse(latest.createdAt) + data.settings.cooldown * 60000 - Date.now()) : 0;
 }
-function canRequest() { return isOpen() && todayRequests().length < data.settings.limit && cooldownMs() === 0; }
+function canRequest() { return data.settings.enabled && isOpen() && todayRequests().length < data.settings.limit && cooldownMs() === 0; }
 function duration(ms) {
   const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
   const hours = Math.floor(totalSeconds / 3600);
@@ -90,9 +90,11 @@ function toast(message) {
 
 function render() {
   const open = isOpen(), remaining = Math.max(0, data.settings.limit - todayRequests().length), cooldown = cooldownMs(), allowed = canRequest();
-  $("availability-label").textContent = open ? "Requests are open" : "Requests are closed";
-  $("request-heading").textContent = allowed ? "Tea, please." : !open ? "We're closed for tea." : remaining === 0 ? "That's enough tea today." : "Just a little longer.";
-  $("request-description").textContent = allowed ? "Press below to submit your official tea request." : !open ? `Requests open at ${data.settings.open} (UK time).` : remaining === 0 ? "You've reached today's request limit. Requests reopen at midnight." : `Your next request is available in ${duration(cooldown)}.`;
+  $("availability-label").textContent = !data.settings.enabled ? "System disabled" : open ? "Requests are open" : "Requests are closed";
+  const systemState = !data.settings.enabled ? "disabled" : !open ? "closed" : remaining === 0 ? "limit" : cooldown > 0 ? "cooldown" : "ready";
+  if ($("system-message").dataset.state !== systemState) setPersonality(systemState);
+  $("request-heading").textContent = allowed ? "Tea, please." : !data.settings.enabled ? "System offline." : !open ? "We're closed for tea." : remaining === 0 ? "That's enough tea today." : "Just a little longer.";
+  $("request-description").textContent = allowed ? "Press below to submit your official tea request." : !data.settings.enabled ? "The administrator has suspended beverage operations." : !open ? `Requests open at ${data.settings.open} (UK time).` : remaining === 0 ? "You've reached today's request limit. Requests reopen at midnight." : `Your next request is available in ${duration(cooldown)}.`;
   requestButton.disabled = !allowed;
   requestButton.querySelector(".request-button-label").innerHTML = allowed
     ? "TEA"
@@ -127,8 +129,9 @@ function render() {
 }
 
 function submitRequest() {
-  if (!canRequest()) { render(); toast("That request can't be accepted right now."); return; }
+  if (!canRequest()) { render(); playDenied(); toast("REQUEST REJECTED. THE SYSTEM HAS SPOKEN."); return; }
   data.requests.push({ id: crypto.randomUUID(), createdAt: new Date().toISOString(), status: "Pending" });
+  setPersonality("accepted"); playActivation();
   saveData(); render();
   $("request-heading").textContent = "CONTRACT IN EFFECT";
   $("request-description").textContent = "Request accepted. Tea is now contractually owed.";
@@ -149,7 +152,8 @@ function renderAdmin() {
   $("admin-availability").textContent = isOpen() ? "Open" : "Closed";
   $("admin-availability").className = `status-pill ${isOpen() ? "fulfilled" : "pending"}`;
   $("admin-availability-detail").textContent = `Requests are accepted between ${data.settings.open} and ${data.settings.close} UK time.`;
-  $("open-time").value = data.settings.open; $("close-time").value = data.settings.close;
+  $("open-time").value = data.settings.open; $("close-time").value = data.settings.close; $("sound-enabled").checked = Boolean(data.settings.sound);
+  $("system-toggle").innerHTML = data.settings.enabled ? '<i class="fa-solid fa-power-off"></i> Disable requests' : '<i class="fa-solid fa-power-off"></i> Enable requests';
   $("cooldown-setting").value = data.settings.cooldown; $("limit-setting").value = data.settings.limit;
   $("pending-list").innerHTML = pending.length ? pending.slice().reverse().map(requestRow).join("") : '<p class="muted">No outstanding requests. A rare moment of peace.</p>';
   $("history-list").innerHTML = data.requests.length ? data.requests.slice().reverse().map(requestRow).join("") : '<p class="muted">No requests yet.</p>';
@@ -161,7 +165,7 @@ function requestRow(r) {
 function markFulfilled(id) {
   const request = data.requests.find(r => r.id === id);
   if (!request || request.status !== "Pending") return;
-  request.status = "Fulfilled"; request.fulfilledAt = new Date().toISOString(); saveData(); render(); toast("Request marked as fulfilled.");
+  request.status = "Fulfilled"; request.fulfilledAt = new Date().toISOString(); saveData(); setPersonality("fulfilled"); playFulfilled(); render(); toast("CONTRACT SATISFIED. DELIVERY CONFIRMED.");
 }
 function countRecent(days) { const cutoff = Date.now() - days * 86400000; return data.requests.filter(r => Date.parse(r.createdAt) >= cutoff).length; }
 function isoWeek(date) {
@@ -201,6 +205,12 @@ function switchPanel(name) {
   document.querySelectorAll(".admin-panel").forEach(p => p.classList.toggle("active", p.id === `panel-${name}`));
 }
 
+$("system-toggle").addEventListener("click", () => {
+  data.settings.enabled = !data.settings.enabled;
+  saveData(); setPersonality(data.settings.enabled ? "ready" : "disabled"); render();
+  toast(data.settings.enabled ? "BEVERAGE OPERATIONS RESTORED." : "BEVERAGE OPERATIONS SUSPENDED.");
+  if (!data.settings.enabled) playDenied(); else playTones([[740,0,.22,"sine"]]);
+});
 requestButton.addEventListener("click", submitRequest);
 $("admin-open").addEventListener("click", openAdmin);
 $("admin-back").addEventListener("click", closeAdmin);
@@ -214,8 +224,8 @@ $("settings-form").addEventListener("submit", e => {
   if (!open || !close || open === close || !Number.isInteger(cooldown) || cooldown < 1 || !Number.isInteger(limit) || limit < 1) {
     $("settings-feedback").textContent = "Please enter valid hours, cooldown and daily limit."; return;
   }
-  data.settings = { open, close, cooldown, limit }; saveData();
-  $("settings-feedback").textContent = "Rules saved in this browser."; render(); toast("Tea rules updated.");
+  data.settings = { ...data.settings, open, close, cooldown, limit, sound: $("sound-enabled").checked }; saveData();
+  $("settings-feedback").textContent = "Rules saved in this browser."; setPersonality("ready"); render(); toast("SYSTEM PARAMETERS UPDATED.");
 });
 
 $("notification-test").addEventListener("click", async () => {
@@ -229,5 +239,6 @@ $("notification-test").addEventListener("click", async () => {
 });
 
 window.addEventListener("focus", render);
+setPersonality("ready");
 setInterval(render, 1000);
 render();
