@@ -134,6 +134,7 @@ async function toggleSystem(){
 $("request-button").addEventListener("click",submitRequest);
 $("admin-open").addEventListener("click",openAdmin);
 $("admin-back").addEventListener("click",closeAdmin);
+$("admin-back-login").addEventListener("click",closeAdmin);
 $("login-form").addEventListener("submit",login);
 $("admin-logout").addEventListener("click",logout);
 $("system-toggle").addEventListener("click",toggleSystem);
