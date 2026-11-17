@@ -71,8 +71,7 @@ function resetState(){
 function resetAll(){if(!confirm("Reset every state and discard this design's edits?"))return;design=defaultDesign();for(const s of states)applyStateDefaults(s.id);$("layout-name").value=design.name;renderPreview();selectElement("heading");markChanged();}
 function init(){
  loadDraft();$("layout-name").value=design.name;
- for(const s of states)if(!design.states[s.id])design.states[s.id]=defaultDesign().states[s.id];
- for(const s of states)applyStateDefaults(s.id);
+ for(const s of states){if(!design.states[s.id]){design.states[s.id]=defaultDesign().states[s.id];applyStateDefaults(s.id);}}
  $("state-select").addEventListener("change",e=>{currentState=e.target.value;selectElement(selectedId);renderPreview();});
  $("layout-name").addEventListener("input",e=>{design.name=e.target.value;markChanged();});
  $("element-text").addEventListener("input",updateSelectionFromInputs);
