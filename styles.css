@@ -170,3 +170,50 @@
  .beam-two{height:26px}
 }
 @media(prefers-reduced-motion:reduce){.request-card.activated .beam,.request-card.activated .beam-two{animation:none}}
+
+
+/* Final beacon placement and beam geometry */
+.request-card{position:relative;overflow:visible!important;clip-path:none!important;isolation:isolate}
+.request-card-copy,.console-topline,.console-bottomline{position:relative;z-index:3}
+.beacon{position:absolute;width:38px;height:38px;z-index:2;overflow:visible;pointer-events:none}
+.beacon-top-left{top:-20px;left:-20px}
+.beacon-top-right{top:-20px;right:-20px}
+.beacon-bottom-left{bottom:-20px;left:-20px}
+.beacon-bottom-right{bottom:-20px;right:-20px}
+.beacon-light{position:relative;display:block;width:38px;height:38px;border-radius:50%;overflow:visible;isolation:isolate;z-index:2}
+.beacon-light:after{z-index:4}
+.beam{position:absolute;display:block;left:50%;top:50%;width: min(72vw, 880px);height:clamp(74px,10vw,130px);margin:0;transform-origin:0 50%;transform:translateY(-50%) rotate(var(--beam-start));clip-path:polygon(0 50%,100% 0,100% 100%);opacity:0;z-index:1;pointer-events:none;mix-blend-mode:screen;filter:drop-shadow(0 0 12px #ff293b);background:linear-gradient(90deg,#ff263cbb 0%,#f3233060 58%,#f3233000 100%)}
+.beam-two{height:clamp(56px,7vw,96px);background:linear-gradient(90deg,#ff9aa1a0 0%,#ff3b4a50 58%,#ff3b4a00 100%)}
+.beacon-top-left .beam-one,.beacon-top-right .beam-one,.beacon-bottom-left .beam-one,.beacon-bottom-right .beam-one{--beam-start:-90deg}
+.beacon-top-left .beam-two,.beacon-top-right .beam-two,.beacon-bottom-left .beam-two,.beacon-bottom-right .beam-two{--beam-start:90deg}
+.request-card.activated .beam{opacity:.56;animation:beamSpinA 5.1s linear infinite}
+.request-card.activated .beam-two{opacity:.38;animation:beamSpinB 6.4s linear infinite}
+.request-card.activated .beacon-top-right .beam-one,.request-card.activated .beacon-bottom-left .beam-one{animation-name:beamSpinB}
+.request-card.activated .beacon-top-right .beam-two,.request-card.activated .beacon-bottom-left .beam-two{animation-name:beamSpinA}
+@keyframes beamSpinA{from{transform:translateY(-50%) rotate(var(--beam-start))}to{transform:translateY(-50%) rotate(calc(var(--beam-start) + 360deg))}}
+@keyframes beamSpinB{from{transform:translateY(-50%) rotate(var(--beam-start))}to{transform:translateY(-50%) rotate(calc(var(--beam-start) - 360deg))}}
+.request-card.activated .beacon-light{animation:beaconFlash .55s ease-in-out infinite alternate}
+@media(max-width:640px){
+ .beacon-top-left{top:-14px;left:-14px}.beacon-top-right{top:-14px;right:-14px}
+ .beacon-bottom-left{bottom:-14px;left:-14px}.beacon-bottom-right{bottom:-14px;right:-14px}
+ .beacon,.beacon-light{width:29px;height:29px}
+ .beam{width:86vw;height:60px}
+ .beam-two{height:44px}
+}
+
+/* Stronger visual confirmation when the request is accepted */
+.request-button{transition:transform .16s ease,filter .2s ease,box-shadow .2s ease}
+.request-button:active:not(:disabled){transform:scale(.94) translateY(5px)}
+.request-button.just-pressed{animation:buttonConfirm .72s cubic-bezier(.2,.8,.2,1)}
+.request-button.just-pressed:after{content:'';position:absolute;inset:-17px;border:3px solid #ff6871;border-radius:50%;animation:buttonRipple .72s ease-out forwards;pointer-events:none}
+.request-card.just-accepted{animation:consoleConfirm .55s ease-out}
+.request-card.just-accepted:after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;background:radial-gradient(ellipse at center,#ff24351c,transparent 68%);animation:confirmFlash .65s ease-out forwards}
+@keyframes buttonConfirm{0%{transform:scale(.94)}35%{transform:scale(1.06);filter:brightness(1.5)}100%{transform:scale(1);filter:brightness(1)}}
+@keyframes buttonRipple{from{transform:scale(.86);opacity:.9}to{transform:scale(1.25);opacity:0}}
+@keyframes consoleConfirm{0%{box-shadow:0 0 0 0 #ff263c00,0 22px 70px #0008}35%{box-shadow:0 0 0 3px #ff263c99,0 0 48px #ff263c55,0 22px 70px #0008}100%{box-shadow:0 0 0 0 #ff263c00,0 22px 70px #0008}}
+@keyframes confirmFlash{0%{opacity:1}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){
+ .request-button.just-pressed,.request-card.just-accepted{animation:none}
+ .request-button.just-pressed:after,.request-card.just-accepted:after{animation:none;display:none}
+ .request-card.activated .beam,.request-card.activated .beam-two{animation:none}
+}
