@@ -5,6 +5,7 @@ let toastTimer;
 
 const $ = (id) => document.getElementById(id);
 const requestButton = $("request-button");
+$("sound-enabled").checked = Boolean(data.settings.sound);
 
 function loadData() {
   try {
@@ -153,7 +154,7 @@ function renderAdmin() {
   $("admin-availability").textContent = isOpen() ? "Open" : "Closed";
   $("admin-availability").className = `status-pill ${isOpen() ? "fulfilled" : "pending"}`;
   $("admin-availability-detail").textContent = `Requests are accepted between ${data.settings.open} and ${data.settings.close} UK time.`;
-  $("open-time").value = data.settings.open; $("close-time").value = data.settings.close; $("sound-enabled").checked = Boolean(data.settings.sound);
+  $("open-time").value = data.settings.open; $("close-time").value = data.settings.close;
   $("system-toggle").innerHTML = data.settings.enabled ? '<i class="fa-solid fa-power-off"></i> Disable requests' : '<i class="fa-solid fa-power-off"></i> Enable requests';
   $("cooldown-setting").value = data.settings.cooldown; $("limit-setting").value = data.settings.limit;
   $("pending-list").innerHTML = pending.length ? pending.slice().reverse().map(requestRow).join("") : '<p class="muted">No outstanding requests. A rare moment of peace.</p>';
