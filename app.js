@@ -43,6 +43,46 @@ function duration(ms) {
 }
 function dateLabel(value) { return new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value)); }
 function escapeHtml(value) { return String(value).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c])); }
+
+const personality = {
+  ready: ["ALL SYSTEMS OPERATIONAL.", "KETTLE LINK ESTABLISHED. AWAITING AUTHORISATION.", "BEVERAGE RESPONSE UNIT STANDING BY."],
+  cooldown: ["PLEASE STAND BY. THE KETTLE IS BUSY.", "COOLDOWN ACTIVE. IMPATIENCE WILL NOT BOIL WATER FASTER.", "YOUR REQUEST HAS BEEN LOGGED. THE KETTLE NEEDS A MOMENT."],
+  limit: ["YOUR GREED HAS BEEN RECORDED.", "DAILY ALLOWANCE EXHAUSTED. THIS INCIDENT WILL BE REVIEWED.", "THAT IS QUITE ENOUGH TEA FOR ONE DAY."],
+  closed: ["BEVERAGE OPERATIONS SUSPENDED.", "OUTSIDE OPERATING HOURS. THE TEA DEPARTMENT IS OFF DUTY."],
+  disabled: ["SYSTEM DISABLED BY ADMINISTRATOR.", "BEVERAGE OPERATIONS SUSPENDED BY COMMAND."],
+  accepted: ["CONTRACTUAL OBLIGATION INITIATED.", "REQUEST ACCEPTED. THE TEA DEBT IS NOW ACTIVE.", "A NEW TEA CONTRACT HAS BEEN REGISTERED."],
+  fulfilled: ["DELIVERY CONFIRMED. EXCELLENT WORK.", "CONTRACT SATISFIED. RECORDS UPDATED.", "TEA DELIVERY VERIFIED. STAND DOWN."]
+};
+function setPersonality(state) {
+  const options = personality[state] || personality.ready;
+  $("system-message-text").textContent = options[Math.floor(Math.random() * options.length)];
+  $("system-message").dataset.state = state;
+}
+let audioContext;
+function playTones(notes) {
+  if (!data.settings.sound) return;
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioContext ||= new AudioCtx();
+    if (audioContext.state === "suspended") audioContext.resume();
+    notes.forEach(([frequency, start, duration, type = "sine", volume = 0.05]) => {
+      const oscillator = audioContext.createOscillator(), gain = audioContext.createGain();
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime + start);
+      gain.gain.setValueAtTime(0.0001, audioContext.currentTime + start);
+      gain.gain.exponentialRampToValueAtTime(volume, audioContext.currentTime + start + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + start + duration);
+      oscillator.connect(gain); gain.connect(audioContext.destination);
+      oscillator.start(audioContext.currentTime + start);
+      oscillator.stop(audioContext.currentTime + start + duration + 0.04);
+    });
+  } catch (error) { console.warn("Audio unavailable", error); }
+}
+function playActivation() { playTones([[440,0,.13,"square"],[660,.14,.16,"square"],[880,.32,.25,"sawtooth",.035],[1320,.55,.32]]); }
+function playFulfilled() { playTones([[660,0,.12],[880,.13,.16],[1100,.3,.22]]); }
+function playDenied() { playTones([[180,0,.22,"triangle"],[130,.2,.3,"triangle"]]); }
+
 function toast(message) {
   const el = $("toast"); el.textContent = message; el.classList.add("show");
   clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("show"), 2600);
