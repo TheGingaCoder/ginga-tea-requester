@@ -7,3 +7,10 @@ button,input,textarea,select{font:inherit}.designer-topbar{height:76px;padding:0
 
 [data-element].is-disabled{opacity:.52}
 .tea-button:disabled{filter:grayscale(.75) brightness(.62);cursor:not-allowed}
+
+/* Font Awesome icon presentation */
+.cup-indicators i{font-size:16px;color:#e9edf4}
+.tea-button .button-lock{font-size:68px;letter-spacing:0;text-shadow:0 2px 5px #600}
+.tea-button .button-text[hidden],.tea-button .button-lock[hidden]{display:none}
+#button-content-editor[hidden]{display:none}
+@media(max-width:650px){.tea-button .button-lock{font-size:58px}}
