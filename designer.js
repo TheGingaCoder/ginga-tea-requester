@@ -39,7 +39,7 @@ function renderList(){
 function selectElement(id){
  selectedId=id;const def=elementDefs.find(e=>e.id===id),cfg=currentConfig();
  $("selected-name").textContent=def.name;$("element-text").value=cfg.text;$("element-text").disabled=def.kind==="container"||def.kind==="indicator";
- $("element-visible").checked=cfg.visible;$("element-enabled").checked=cfg.enabled;
+ $("element-visible").checked=cfg.visible;$("element-enabled").checked=cfg.enabled;$("enabled-label").textContent=id==="cooldown-progress"?"Progress bar active in this state":"Enabled in this state";
  $("progress-editor").hidden=id!=="cooldown-progress";$("progress-value").value=cfg.progress??0;$("progress-value-label").textContent=(cfg.progress??0)+"%";
  document.querySelectorAll("[data-element]").forEach(el=>el.classList.toggle("selected",el.dataset.element===id));
  renderList();
