@@ -1,100 +1,68 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#090d14">
-  <title>Ginga Tea Requester</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Orbitron:wght@400;500;600;700;800&family=Oxanium:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer">
-  <link rel="stylesheet" href="./styles.css">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ginga Tea — UI Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
 </head>
-<body>
-  <div class="scanlines" aria-hidden="true"></div><div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
-  <main class="app-shell">
-    <header class="topbar">
-      <a class="brand" href="#"><span class="brand-mark">GT<span></span></span><span><strong>GINGA TEA</strong><small>REQUEST CONTROL // 01</small></span></a>
-      <div class="topbar-right"><span class="system-indicator"><i class="live-dot"></i><span id="availability-label">Checking availability</span></span><button class="icon-button" id="admin-open" aria-label="Open admin panel"><i class="fa-solid fa-sliders" aria-hidden="true"></i></button></div>
-    </header>
-
-    <section class="request-view" id="request-view">
-      <div class="hero-copy">
-        <div class="contract-logo">
-          <img src="./TeaContract.svg" alt="The Tea Contract">
-        </div>
-        <p class="contract-tagline">The Contract Is In Effect</p>
-      </div>
-      <section class="cooldown-module info-card cooldown-card" aria-label="Request cooldown">
-        <div class="cooldown-heading"><div class="info-icon"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i></div><div><span class="card-label">NEXT REQUEST</span><strong id="cooldown-value">Available now</strong><small id="cooldown-detail">No cooldown active</small></div></div>
-        <div class="cooldown-track" role="progressbar" aria-label="Cooldown remaining" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="cooldown-fill" id="cooldown-progress"></div></div>
-      </section>
-      <section class="request-card" id="request-card">
-        <div class="beacon beacon-left" aria-hidden="true"><span class="beacon-light"><img class="beam-svg" src="./WarningBeams.svg" alt=""></span></div>
-        <div class="beacon beacon-right" aria-hidden="true"><span class="beacon-light"><img class="beam-svg" src="./WarningBeams.svg" alt=""></span></div>
-        <div class="console-topline"><span>MANUAL REQUEST OVERRIDE</span><span class="console-code">SYS // 001</span></div>
-        <div class="request-card-copy"><span class="tiny-label">PRIMARY CONTROL</span><h2 id="request-heading">Tea Available</h2><p id="request-description">You may request a cuppa</p><button class="request-button" id="request-button"><span class="request-button-label">TEA</span></button><p class="fine-print">WARNING: ACCEPTED REQUESTS ARE IRREVOCABLE.</p></div>
-        <div class="console-bottomline"><span>AUTH: HOUSEHOLD</span><span>CONTRACTUAL OBLIGATION: ENABLED</span></div>
-      </section>
-      <section class="allowance-module info-card">
-        <div class="allowance-copy"><span class="card-label">Tea Allowance</span><strong id="remaining-value">4/4 Remaining</strong><small id="remaining-detail">Four requests available today.</small></div>
-        <div class="tea-indicators" id="tea-indicators" role="img" aria-label="Four tea requests remaining">
-          <span class="tea-icon unused" aria-hidden="true">☕</span><span class="tea-icon unused" aria-hidden="true">☕</span><span class="tea-icon unused" aria-hidden="true">☕</span><span class="tea-icon unused" aria-hidden="true">☕</span>
-        </div>
-      </section>
-      <section class="current-request" id="current-request" hidden><div class="section-heading"><div><p class="eyebrow">CONTRACT MONITOR</p><h2>Active request</h2></div><span class="status-pill pending" id="request-status">Pending</span></div><div class="current-request-body"><div class="mini-cup"><i class="fa-solid fa-mug-hot" aria-hidden="true"></i></div><div><strong id="current-request-title">Tea requested!</strong><p id="current-request-time">Your request has been accepted.</p><small id="current-request-note">The tea is officially owed.</small></div></div></section>
-      <footer class="page-footer"><span>DOMESTIC SYSTEMS DIVISION // NO APPEALS</span><span>GINGA TEA REQUESTER <b>•</b> EST. 2026</span></footer>
+<body class="designer-page">
+<header class="designer-topbar">
+  <div class="designer-brand"><span class="brand-mark">GT</span><div><strong>GINGA TEA DESIGNER</strong><small>STATE & LAYOUT EDITOR</small></div></div>
+  <div class="top-actions"><span id="save-indicator">LOCAL DRAFT</span><button id="export-button" class="primary-action">Export layout JSON</button></div>
+</header>
+<main class="designer-shell">
+  <aside class="editor-sidebar">
+    <section class="editor-section">
+      <label class="field-label" for="layout-name">LAYOUT NAME</label>
+      <input id="layout-name" value="Tea Contract — Main Interface" maxlength="80">
+      <p class="hint">Give this design a name so its purpose is clear in the exported file.</p>
     </section>
-
-    <section class="admin-view" id="admin-view" hidden>
-      <div class="auth-gate" id="auth-gate" hidden>
-        <div class="panel-card auth-card">
-          <button class="back-button" id="admin-back-login"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to requester</button>
-          <p class="eyebrow">RESTRICTED ACCESS</p>
-          <h2>ADMINISTRATOR LOGIN</h2>
-          <p class="muted">Sign in with the administrator account registered in Supabase.</p>
-          <form id="login-form">
-            <label>Email address<input type="email" id="login-email" autocomplete="username" required></label>
-            <label>Password<input type="password" id="login-password" autocomplete="current-password" required></label>
-            <button class="solid-button" type="submit">Sign in</button>
-            <p class="muted" id="login-feedback" aria-live="polite"></p>
-          </form>
-        </div>
-      </div>
-      <div id="admin-console" hidden>
-      <div class="admin-header"><button class="back-button" id="admin-logout"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Sign out</button><button class="back-button" id="admin-back"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to requester</button><p class="eyebrow">SYSTEM ADMINISTRATION</p><h1>CONTROL ROOM</h1><p>Operational settings and contract records.</p></div>
-      <nav class="admin-tabs"><button class="admin-tab active" data-panel="overview">Overview</button><button class="admin-tab" data-panel="settings">Rules</button><button class="admin-tab" data-panel="requests">Requests</button><button class="admin-tab" data-panel="statistics">Statistics</button><button class="admin-tab" data-panel="devices">Devices</button></nav>
-      <section class="admin-panel active" id="panel-overview">
-        <div class="metric-grid"><article class="metric-card"><span>Accepted today</span><strong id="metric-today">0</strong></article><article class="metric-card"><span>Pending</span><strong id="metric-pending">0</strong></article><article class="metric-card"><span>Fulfilled</span><strong id="metric-fulfilled">0</strong></article></div>
-        <div class="panel-card quick-controls-card"><div class="panel-title"><div><p class="eyebrow">QUICK CONTROLS</p><h2>System controls</h2></div><span class="status-pill fulfilled">ADMIN</span></div>
-          <div class="quick-control"><div><strong>Opening-hours override</strong><p class="muted" id="hours-override-detail">Allow requests outside the normal opening hours.</p></div><button class="outline-button" id="hours-override-toggle" type="button">Override off</button></div>
-          <div class="quick-control"><div><strong>Request system</strong><p class="muted">Master switch. Disabling this blocks all new requests.</p></div><button class="outline-button" id="system-toggle" type="button"><i class="fa-solid fa-power-off"></i> Disable requests</button></div>
-        </div>
-        <div class="panel-card priority-requests-card"><div class="panel-title"><div><p class="eyebrow">ACTION REQUIRED</p><h2>Fulfil tea requests</h2></div><span class="status-pill pending" id="pending-count-pill">0 PENDING</span></div><p class="muted">Outstanding requests appear here. Mark each one fulfilled when the tea has been delivered.</p><div id="pending-list" class="request-list"><p class="muted">No outstanding requests.</p></div></div>
-        <div class="panel-card"><div class="panel-title"><div><p class="eyebrow">LIVE STATUS</p><h2>Requester availability</h2></div><span class="status-pill pending" id="admin-availability">Open</span></div><p class="muted" id="admin-availability-detail">Requests are accepted between 07:00 and 22:00.</p></div>
-      </section>
-      <section class="admin-panel" id="panel-settings">
-        <form id="settings-form" class="panel-card settings-form"><div class="panel-title"><div><p class="eyebrow">REQUEST WINDOW</p><h2>Opening hours</h2></div></div><p class="muted settings-help">Set the exact times when tea requests are allowed. Changes apply across every connected device after you save the rules.</p>
-          <div class="field-row"><label>Opens at<input type="time" id="open-time" value="07:00" required></label><label>Closes at<input type="time" id="close-time" value="22:00" required></label></div>
-          <div class="field-row"><label>Cooldown (minutes)<input type="number" id="cooldown-setting" min="1" max="1440" value="60" required></label><label>Daily request limit<input type="number" id="limit-setting" min="1" max="100" value="4" required></label></div>
-          <div class="sound-setting"><label><input type="checkbox" id="sound-enabled"> Enable system sound effects</label><small>Sound plays after interacting with this page.</small></div><button class="solid-button" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save rules</button><p class="muted" id="settings-feedback" aria-live="polite"></p>
-        </form>
-        
-      </section>
-      <section class="admin-panel" id="panel-requests"><div class="panel-card"><div class="panel-title"><div><p class="eyebrow">AUDIT TRAIL</p><h2>Request history</h2></div></div><div id="history-list" class="request-list"><p class="muted">No requests yet.</p></div></div></section>
-      <section class="admin-panel" id="panel-statistics">
-        <div class="metric-grid"><article class="metric-card"><span>All-time total</span><strong id="stat-total">0</strong></article><article class="metric-card"><span>Weekly average</span><strong id="stat-week">0</strong><small>Requests / week</small></article><article class="metric-card"><span>Monthly average</span><strong id="stat-month">0</strong><small>Requests / month</small></article></div>
-        <div class="panel-card"><div class="panel-title"><div><p class="eyebrow">RECENT ACTIVITY</p><h2>Requests by day</h2></div></div><div id="activity-chart" class="activity-chart"><p class="muted">Your chart will appear as requests come in.</p></div></div>
-        <div class="panel-card"><div class="stat-line"><span>Last 30 days · weekly average</span><strong id="recent-week">0</strong></div><div class="stat-line"><span>Last 90 days · monthly average</span><strong id="recent-month">0</strong></div><div class="stat-line"><span>Busiest week</span><strong id="busiest-week">—</strong></div><div class="stat-line"><span>Busiest month</span><strong id="busiest-month">—</strong></div></div>
-      </section>
-      <section class="admin-panel" id="panel-devices"><div class="panel-card"><div class="panel-title"><div><p class="eyebrow">PUSH NOTIFICATIONS</p><h2>Registered devices</h2></div></div><p class="muted">Automatic device registration and real push subscriptions will be connected in the backend build. This preview can only demonstrate browser permission on this device.</p><button class="outline-button" id="notification-test"><i class="fa-solid fa-bell" aria-hidden="true"></i> Test browser notification</button><p class="muted" id="notification-feedback" aria-live="polite"></p></div></section>
-      <div class="prototype-note"><strong>Connected build</strong><span>Requests and rules are stored centrally. Admin access requires your Supabase account. Remote push notifications are not connected yet.</span></div>
-      </div>
+    <section class="editor-section">
+      <label class="field-label" for="state-select">UI STATE</label>
+      <select id="state-select">
+        <option value="available">Available</option><option value="cooldown">Cooldown</option><option value="daily-limit">Daily limit reached</option><option value="closed">Outside opening hours</option><option value="disabled">System disabled</option><option value="pending">Request pending</option><option value="fulfilled">Request fulfilled</option>
+      </select>
+      <p class="hint">Each state has its own text and element settings. Changes only affect the selected state.</p>
     </section>
-  </main>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./app.js"></script>
-</body>
-</html>
+    <section class="editor-section">
+      <div class="section-heading"><span class="field-label">UI ELEMENTS</span><span class="count" id="element-count">7</span></div>
+      <div id="element-list" class="element-list"></div>
+    </section>
+    <section class="editor-section selected-editor" id="selected-editor">
+      <div class="section-heading"><span class="field-label">SELECTED ELEMENT</span><span id="selected-name" class="selected-name">Request heading</span></div>
+      <label class="field-label" for="element-text">TEXT CONTENT</label>
+      <textarea id="element-text" rows="3"></textarea>
+      <label class="toggle-line"><input type="checkbox" id="element-visible" checked><span>Visible in this state</span></label>
+      <label class="toggle-line"><input type="checkbox" id="element-enabled" checked><span>Enabled in this state</span></label>
+      <p class="hint">For non-text elements, text content can be left blank. Visibility and enabled state still apply.</p>
+    </section>
+    <div class="sidebar-footer"><button id="reset-state" class="secondary-action">Reset selected state</button><button id="reset-all" class="text-action">Reset entire design</button></div>
+  </aside>
+  <section class="workspace">
+    <div class="workspace-toolbar"><div><span class="field-label">LIVE PREVIEW</span><span class="preview-state" id="preview-state">AVAILABLE</span></div><span class="hint">Select an element in the preview or element list to edit it.</span></div>
+    <div class="preview-stage">
+      <div class="preview-device">
+        <div class="preview-logo"><img src="./TeaContract.svg" alt="The Tea Contract"><p data-element="tagline">The Contract Is In Effect</p></div>
+        <section class="preview-cooldown" data-element="cooldown-panel">
+          <div class="cooldown-copy"><span data-element="cooldown-label">Available now</span></div>
+          <div class="progress-track" data-element="cooldown-progress"><span></span></div>
+        </section>
+        <section class="preview-main" data-element="main-panel">
+          <h1 data-element="heading">Tea Available</h1>
+          <p data-element="description">You may request a cuppa</p>
+          <button class="tea-button" data-element="tea-button" type="button">TEA</button>
+        </section>
+        <section class="preview-allowance" data-element="allowance-panel">
+          <div><strong data-element="allowance-label">Tea Allowance</strong><span data-element="allowance-value">3/4 Remaining</span></div>
+          <div class="cup-indicators" data-element="cup-indicators"><i>☕</i><i>☕</i><i>☕</i><i>☕</i></div>
+        </section>
+      </div>
+    </div>
+    <div class="workspace-footer"><span>DESIGN MODE — NO REQUESTS ARE SENT</span><span>EXPORT INCLUDES ALL STATES AND ELEMENT OVERRIDES</span></div>
+  </section>
+</main>
+<div id="toast" class="toast" role="status"></div>
+<script src="./designer.js"></script>
+</body></html>
