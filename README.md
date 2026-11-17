@@ -35,3 +35,11 @@ Open the local URL printed by the server.
 - Daily accepted-request limit: 4
 - Drink: standard tea
 - Accepted requests cannot be cancelled
+
+## Added in the control-room expansion
+- System personality messages for ready, cooldown, limit, closed, disabled, accepted and fulfilled states
+- Optional synthesised sound effects using the Web Audio API (off by default)
+- Admin global request enable/disable control
+- More expressive request acceptance, rejection and fulfilment feedback
+
+Sound is generated locally by the browser; no audio files or external sound assets are required. The global switch and settings are currently local to this browser and are not a secure server-side control.
