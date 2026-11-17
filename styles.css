@@ -143,3 +143,30 @@
 @media(prefers-reduced-motion:reduce){
  .request-card.activated .beam,.request-card.activated .beam-two,.request-card.activated .beacon-light{animation:none}
 }
+
+/* Beacon correction: opposed vertical beams, anchored at each circular lamp */
+.request-card{overflow:visible!important;clip-path:none!important}
+.beacon{z-index:5;overflow:visible}
+.beacon-light{overflow:visible;isolation:isolate}
+.beacon-light:after{z-index:3;pointer-events:none}
+.beam{left:50%;top:50%;width:clamp(190px,38vw,390px);height:clamp(42px,6vw,66px);transform-origin:0 50%;z-index:1;clip-path:polygon(0 50%,100% 0,100% 100%);overflow:visible}
+.beam-two{height:clamp(34px,4.8vw,52px)}
+.beacon-top-left .beam-one,.beacon-top-right .beam-one,.beacon-bottom-left .beam-one,.beacon-bottom-right .beam-one{--beam-start:-90deg}
+.beacon-top-left .beam-two,.beacon-top-right .beam-two,.beacon-bottom-left .beam-two,.beacon-bottom-right .beam-two{--beam-start:90deg}
+.request-card.activated .beam{animation:beamClockwise 4s linear infinite}
+.request-card.activated .beam-two{animation:beamCounter 4s linear infinite}
+.request-card.activated .beacon-top-right .beam-one,.request-card.activated .beacon-bottom-left .beam-one{animation-name:beamCounter}
+.request-card.activated .beacon-top-right .beam-two,.request-card.activated .beacon-bottom-left .beam-two{animation-name:beamClockwise}
+@keyframes beamClockwise{from{transform:rotate(var(--beam-start))}to{transform:rotate(calc(var(--beam-start) + 360deg))}}
+@keyframes beamCounter{from{transform:rotate(var(--beam-start))}to{transform:rotate(calc(var(--beam-start) - 360deg))}}
+.request-button-label{display:grid;place-items:center;min-height:58px}
+.request-button-label .fa-lock{font-size:48px;line-height:1}
+.info-icon .fa-solid,.mini-cup .fa-solid{font-size:17px}
+.icon-button .fa-solid{font-size:15px}
+.back-button .fa-solid,.solid-button .fa-solid,.outline-button .fa-solid,.request-row .fa-solid{margin-right:6px}
+.tea-icon .fa-solid{font-size:17px}
+@media(max-width:640px){
+ .beam{width:clamp(125px,39vw,210px);height:34px}
+ .beam-two{height:26px}
+}
+@media(prefers-reduced-motion:reduce){.request-card.activated .beam,.request-card.activated .beam-two{animation:none}}
