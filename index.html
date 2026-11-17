@@ -5,6 +5,7 @@
 <title>Ginga Tea — UI Designer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="./styles.css">
 </head>
 <body class="designer-page">
@@ -32,6 +33,7 @@
     </section>
     <section class="editor-section selected-editor" id="selected-editor">
       <div class="section-heading"><span class="field-label">SELECTED ELEMENT</span><span id="selected-name" class="selected-name">Request heading</span></div>
+      <div id="button-content-editor" hidden><label class="field-label" for="button-content-mode">BUTTON CONTENT</label><select id="button-content-mode"><option value="text">Text label</option><option value="lock">Lock icon</option></select></div>
       <label class="field-label" for="element-text">TEXT CONTENT</label>
       <textarea id="element-text" rows="3"></textarea>
       <div id="progress-editor" hidden><label class="field-label" for="progress-value">PROGRESS FILL <span id="progress-value-label">45%</span></label><input id="progress-value" type="range" min="0" max="100" value="45"></div><label class="toggle-line"><input type="checkbox" id="element-visible" checked><span>Visible in this state</span></label>
@@ -52,11 +54,11 @@
         <section class="preview-main" data-element="main-panel">
           <h1 data-element="heading">Tea Available</h1>
           <p data-element="description">You may request a cuppa</p>
-          <button class="tea-button" data-element="tea-button" type="button">TEA</button>
+          <button class="tea-button" data-element="tea-button" type="button"><span class="button-text">TEA</span><i class="fa-solid fa-lock button-lock" aria-hidden="true" hidden></i></button>
         </section>
         <section class="preview-allowance" data-element="allowance-panel">
           <div><strong data-element="allowance-label">Tea Allowance</strong><span data-element="allowance-value">3/4 Remaining</span></div>
-          <div class="cup-indicators" data-element="cup-indicators"><i>☕</i><i>☕</i><i>☕</i><i>☕</i></div>
+          <div class="cup-indicators" data-element="cup-indicators"><i class="fa-solid fa-mug-hot" aria-hidden="true"></i><i class="fa-solid fa-mug-hot" aria-hidden="true"></i><i class="fa-solid fa-mug-hot" aria-hidden="true"></i><i class="fa-solid fa-mug-hot" aria-hidden="true"></i></div>
         </section>
       </div>
     </div>
