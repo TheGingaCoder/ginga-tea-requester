@@ -280,3 +280,19 @@
  .beacon-right{right:-54px}
  .beam-svg{width:min(92vw,620px)}
 }
+
+
+/* System personality, audio preference and expanded admin controls */
+.system-message{display:flex;align-items:center;justify-content:center;gap:10px;width:max-content;max-width:100%;margin:18px auto 24px;padding:10px 15px;border:1px solid #263b50;border-radius:999px;background:#0b1420;color:#8da4ba;font:9px var(--mono);letter-spacing:1px;text-align:center}
+.system-message i{color:var(--cyan)}
+.system-message[data-state="accepted"]{border-color:#8f2834;color:#ff9ba3;box-shadow:0 0 22px #e9233420}
+.system-message[data-state="disabled"],.system-message[data-state="limit"]{border-color:#74404a;color:#e99ba2}
+.system-message[data-state="fulfilled"],.system-message[data-state="ready"]{border-color:#285c56;color:#83d9b6}
+.sound-setting{display:grid;gap:7px;margin:16px 0;padding:13px;border:1px solid var(--line);border-radius:13px;background:#0b131e}
+.sound-setting label{display:flex;align-items:center;gap:9px;color:#d5deea;font-size:12px}
+.sound-setting input{width:16px;height:16px;accent-color:var(--red)}
+.sound-setting small{color:var(--muted);font-size:10px}
+#system-toggle{margin-top:5px}
+#system-toggle:hover{border-color:var(--red);color:#fff}
+.request-card.activated{box-shadow:0 0 34px #f12b3630,0 22px 70px #0008,inset 0 1px #ffffff0b}
+@media(max-width:640px){.system-message{font-size:8px;letter-spacing:.5px;padding:9px 11px}}
