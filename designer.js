@@ -48,8 +48,8 @@ function selectElement(id){
 function renderPreview(){
  for(const def of elementDefs){const cfg=design.states[currentState][def.id],el=document.querySelector('[data-element="'+def.id+'"]');if(!el)continue;
  el.classList.toggle("is-hidden",!cfg.visible);el.classList.toggle("is-disabled",!cfg.enabled);
- if(["tagline","cooldown-label","heading","description","tea-button","allowance-label","allowance-value"].includes(def.id)){el.textContent=cfg.text;}
- if(def.id==="tea-button"){el.disabled=!cfg.enabled;el.querySelector(".button-text").hidden=cfg.buttonMode==="lock";el.querySelector(".button-lock").hidden=cfg.buttonMode!=="lock";el.setAttribute("aria-label",cfg.buttonMode==="lock"?"Locked":"Tea request");}
+ if(["tagline","cooldown-label","heading","description","allowance-label","allowance-value"].includes(def.id)){el.textContent=cfg.text;}
+ if(def.id==="tea-button"){el.querySelector(".button-text").textContent=cfg.text;el.disabled=!cfg.enabled;el.querySelector(".button-text").hidden=cfg.buttonMode==="lock";el.querySelector(".button-lock").hidden=cfg.buttonMode!=="lock";el.setAttribute("aria-label",cfg.buttonMode==="lock"?"Locked":"Tea request");}
  if(def.id==="cooldown-progress"){const fill=cfg.enabled?(cfg.progress??0):0;el.querySelector("span").style.width=fill+"%";el.classList.toggle("progress-active",cfg.enabled&&fill>0);}
  if(def.id==="cup-indicators"){const used=currentState==="daily-limit"?4:1;[...el.children].forEach((cup,i)=>cup.style.opacity=i<used?".35":"1");}
  }
