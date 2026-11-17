@@ -32,7 +32,15 @@ function cooldownMs() {
   return latest ? Math.max(0, Date.parse(latest.createdAt) + data.settings.cooldown * 60000 - Date.now()) : 0;
 }
 function canRequest() { return isOpen() && todayRequests().length < data.settings.limit && cooldownMs() === 0; }
-function duration(ms) { const n = Math.ceil(ms / 60000); return n >= 60 ? `${Math.floor(n/60)}h ${String(n%60).padStart(2,"0")}m` : `${n}m`; }
+function duration(ms) {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return hours > 0
+    ? `${hours}h ${String(minutes).padStart(2,"0")}m ${String(seconds).padStart(2,"0")}s`
+    : `${minutes}m ${String(seconds).padStart(2,"0")}s`;
+}
 function dateLabel(value) { return new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value)); }
 function escapeHtml(value) { return String(value).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c])); }
 function toast(message) {
@@ -46,7 +54,9 @@ function render() {
   $("request-heading").textContent = allowed ? "Tea, please." : !open ? "We're closed for tea." : remaining === 0 ? "That's enough tea today." : "Just a little longer.";
   $("request-description").textContent = allowed ? "Press below to submit your official tea request." : !open ? `Requests open at ${data.settings.open} (UK time).` : remaining === 0 ? "You've reached today's request limit. Requests reopen at midnight." : `Your next request is available in ${duration(cooldown)}.`;
   requestButton.disabled = !allowed;
-  requestButton.querySelector("span").textContent = allowed ? "TEA" : "LOCKED";
+  requestButton.querySelector(".request-button-label").innerHTML = allowed
+    ? "TEA"
+    : '<i class="fa-solid fa-lock" aria-label="Locked"></i>';
   requestButton.querySelector(".button-sub").textContent = allowed ? "INITIATE REQUEST" : "REQUEST UNAVAILABLE";
   const active = latestRequest();
   $("request-card").classList.toggle("activated", Boolean(active && active.status === "Pending"));
@@ -61,7 +71,7 @@ function render() {
   const indicators = $("tea-indicators");
   indicators.innerHTML = Array.from({length: data.settings.limit}, (_, index) => {
     const used = index >= remaining;
-    return `<span class="tea-icon ${used ? "used" : "unused"}" aria-hidden="true">☕</span>`;
+    return `<span class="tea-icon ${used ? "used" : "unused"}" aria-hidden="true"><i class="fa-solid fa-mug-hot"></i></span>`;
   }).join("");
   indicators.setAttribute("aria-label", `${remaining} of ${data.settings.limit} tea requests remaining`);
 
@@ -100,7 +110,7 @@ function renderAdmin() {
   renderStatistics();
 }
 function requestRow(r) {
-  return `<div class="request-row"><div><strong>☕ Tea request · ${escapeHtml(r.status)}</strong><small>${dateLabel(r.createdAt)}</small></div>${r.status === "Pending" ? `<button data-fulfil="${r.id}">Mark fulfilled</button>` : '<span class="status-pill fulfilled">Done</span>'}</div>`;
+  return `<div class="request-row"><div><strong><i class="fa-solid fa-mug-hot" aria-hidden="true"></i> Tea request · ${escapeHtml(r.status)}</strong><small>${dateLabel(r.createdAt)}</small></div>${r.status === "Pending" ? `<button data-fulfil="${r.id}"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark fulfilled</button>` : '<span class="status-pill fulfilled"><i class="fa-solid fa-check" aria-hidden="true"></i> Done</span>'}</div>`;
 }
 function markFulfilled(id) {
   const request = data.requests.find(r => r.id === id);
@@ -173,5 +183,5 @@ $("notification-test").addEventListener("click", async () => {
 });
 
 window.addEventListener("focus", render);
-setInterval(render, 15000);
+setInterval(render, 1000);
 render();
