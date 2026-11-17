@@ -91,3 +91,55 @@
  .tea-icon{width:34px;height:34px}
 }
 @media(prefers-reduced-motion:reduce){.cooldown-fill:after{animation:none}.request-card.activated .beam,.request-card.activated .beam-two,.request-card.activated .beacon-light{animation:none}}
+
+
+/* Refined beacon geometry and rounded control-room surfaces */
+:root{--radius-sm:12px;--radius-md:18px;--radius-lg:24px;--radius-xl:30px}
+.topbar,.brand-mark,.icon-button,.cooldown-module,.request-card,.allowance-module,.current-request,.info-card,.metric-card,.panel-card,.request-row,.back-button,.outline-button,.solid-button,.admin-tab,.prototype-note,.toast,.status-pill,input,.cooldown-track,.tea-icon{border-radius:var(--radius-md)}
+.brand-mark{border-radius:13px}
+.icon-button{border-radius:12px}
+.request-card{border-radius:26px;overflow:hidden;clip-path:inset(0 round 26px)}
+.cooldown-module,.allowance-module{border-radius:20px}
+.cooldown-track{height:12px;border-radius:999px}
+.cooldown-fill{border-radius:999px}
+.request-button{border-radius:50%}
+.request-card-copy{padding:42px 110px 38px}
+.beacon{width:38px;height:38px;z-index:4}
+.beacon-top-left{top:15px;left:15px}
+.beacon-top-right{top:15px;right:15px}
+.beacon-bottom-left{bottom:15px;left:15px}
+.beacon-bottom-right{bottom:15px;right:15px}
+.beacon-light{width:34px;height:34px;overflow:visible;isolation:isolate}
+.beam{position:absolute;left:50%;top:50%;width:clamp(180px,34vw,360px);height:clamp(42px,6vw,66px);display:block;transform-origin:0 50%;transform:translateY(-50%) rotate(var(--beam-start,0deg));opacity:0;clip-path:polygon(0 50%,100% 0,100% 100%);background:linear-gradient(90deg,#f32330a8,#f3233040 72%,#f3233000);filter:drop-shadow(0 0 9px #ff293b);mix-blend-mode:screen;pointer-events:none;z-index:-1}
+.beam-two{height:clamp(30px,4.4vw,48px);opacity:0;background:linear-gradient(90deg,#ff9aa18a,#ff3b4a30 72%,#ff3b4a00)}
+.beacon-top-left .beam-one{--beam-start:-18deg}
+.beacon-top-left .beam-two{--beam-start:164deg}
+.beacon-top-right .beam-one{--beam-start:154deg}
+.beacon-top-right .beam-two{--beam-start:-28deg}
+.beacon-bottom-left .beam-one{--beam-start:24deg}
+.beacon-bottom-left .beam-two{--beam-start:202deg}
+.beacon-bottom-right .beam-one{--beam-start:196deg}
+.beacon-bottom-right .beam-two{--beam-start:12deg}
+.request-card.activated .beam{opacity:.78;animation:beamClockwise 3.8s linear infinite}
+.request-card.activated .beam-two{opacity:.5;animation:beamCounter 4.6s linear infinite}
+.request-card.activated .beacon-top-right .beam-one,
+.request-card.activated .beacon-bottom-left .beam-one{animation-name:beamCounter}
+.request-card.activated .beacon-top-left .beam-two,
+.request-card.activated .beacon-bottom-right .beam-two{animation-name:beamClockwise}
+@keyframes beamClockwise{from{transform:translateY(-50%) rotate(var(--beam-start,0deg))}to{transform:translateY(-50%) rotate(calc(var(--beam-start,0deg) + 360deg))}}
+@keyframes beamCounter{from{transform:translateY(-50%) rotate(var(--beam-start,0deg))}to{transform:translateY(-50%) rotate(calc(var(--beam-start,0deg) - 360deg))}}
+.request-card.activated .beacon-light{animation:beaconFlash .65s ease-in-out infinite alternate}
+.request-card.activated .beam{filter:drop-shadow(0 0 7px #ff293b);}
+
+@media(max-width:640px){
+ .request-card{border-radius:22px}
+ .request-card-copy{padding:48px 34px 34px}
+ .beacon-top-left{top:11px;left:11px}.beacon-top-right{top:11px;right:11px}
+ .beacon-bottom-left{bottom:11px;left:11px}.beacon-bottom-right{bottom:11px;right:11px}
+ .beacon,.beacon-light{width:28px;height:28px}
+ .beam{width:clamp(120px,36vw,190px);height:34px}
+ .beam-two{height:25px}
+}
+@media(prefers-reduced-motion:reduce){
+ .request-card.activated .beam,.request-card.activated .beam-two,.request-card.activated .beacon-light{animation:none}
+}
