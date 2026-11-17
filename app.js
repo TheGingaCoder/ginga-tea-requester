@@ -51,7 +51,11 @@ function render() {
   const active = latestRequest();
   $("request-card").classList.toggle("activated", Boolean(active && active.status === "Pending"));
   $("cooldown-value").textContent = cooldown > 0 ? duration(cooldown) : "Available now";
-  $("cooldown-detail").textContent = cooldown > 0 ? "Until your next request" : "No cooldown active";
+  $("cooldown-detail").textContent = cooldown > 0 ? "Time remaining before next request" : "No cooldown active";
+  const cooldownTotal = Math.max(1, data.settings.cooldown * 60000);
+  const cooldownProgress = Math.max(0, Math.min(100, ((cooldownTotal - cooldown) / cooldownTotal) * 100));
+  $("cooldown-progress").style.width = `${cooldownProgress}%`;
+  $("cooldown-progress").parentElement.setAttribute("aria-valuenow", String(Math.round(cooldownProgress)));
   $("remaining-value").textContent = `${remaining} of ${data.settings.limit} left`;
   $("remaining-detail").textContent = remaining === 0 ? "Back again after midnight." : "Make them count.";
 
