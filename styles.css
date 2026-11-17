@@ -41,3 +41,53 @@
  .request-card-copy p{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.cooldown-fill:after{animation:none}.request-card.activated .siren i{animation:none}}
+
+
+/* Requester module hierarchy */
+.cooldown-module{display:block;max-width:760px;margin:0 auto 14px;padding:17px 21px;background:linear-gradient(110deg,#121d2a,#0d141e);border:1px solid #34475d}
+.cooldown-heading{display:flex;align-items:center;gap:14px}
+.cooldown-track{height:11px;width:100%;margin-top:15px;overflow:hidden;border:1px solid #34475d;background:#080e16;position:relative}
+.cooldown-fill{height:100%;width:0;position:relative;background:linear-gradient(90deg,#8e111d,#f12b36);transition:width .45s linear;overflow:hidden}
+.cooldown-fill:after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.32) 0 6px,transparent 6px 12px);background-size:17px 17px;animation:cooldownStripes .55s linear infinite}
+@keyframes cooldownStripes{to{background-position:17px 0}}
+.request-card{max-width:760px;min-height:390px;isolation:isolate}
+.request-card-copy{position:relative;z-index:2;padding:34px 110px 30px}
+.console-topline,.console-bottomline{position:relative;z-index:3}
+.beacon{position:absolute;z-index:1;width:38px;height:38px;display:grid;place-items:center}
+.beacon-top-left{top:13px;left:13px}
+.beacon-top-right{top:13px;right:13px}
+.beacon-bottom-left{bottom:13px;left:13px}
+.beacon-bottom-right{bottom:13px;right:13px}
+.beacon-light{position:relative;display:block;width:34px;height:34px;border-radius:50%;border:3px solid #280b10;background:radial-gradient(circle at 35% 30%,#ff777d 0,#f01825 35%,#9c0712 78%);box-shadow:0 0 0 2px #6d1720,0 0 10px #ef263344;z-index:2}
+.beacon-light:after{content:'';position:absolute;inset:4px;border:1px solid #ffffff55;border-radius:50%}
+.beam{position:absolute;left:50%;top:50%;width:clamp(130px,26vw,255px);height:clamp(35px,6vw,62px);display:block;transform-origin:0 50%;opacity:0;clip-path:polygon(0 50%,100% 0,100% 100%);background:linear-gradient(90deg,#f32330a8,#f3233040 72%,#f3233000);filter:drop-shadow(0 0 9px #ff293b);mix-blend-mode:screen;pointer-events:none}
+.beam-two{background:linear-gradient(90deg,#ff9aa18a,#ff3b4a30 72%,#ff3b4a00)}
+.beacon-top-right .beam,.beacon-bottom-right .beam{transform:rotate(180deg);background:linear-gradient(90deg,#f3233000,#f3233040 28%,#f32330a8)}
+.beacon-top-right .beam-two,.beacon-bottom-right .beam-two{background:linear-gradient(90deg,#ff3b4a00,#ff3b4a30 28%,#ff9aa18a)}
+.request-card.activated .beacon-light{box-shadow:0 0 0 2px #8d1a26,0 0 19px #ff1d32,0 0 34px #ff1d3277;animation:beaconFlash .55s ease-in-out infinite alternate}
+.request-card.activated .beam{opacity:.82;animation:beamRotate 2.8s linear infinite}
+.request-card.activated .beam-two{opacity:.56;animation:beamRotateReverse 2.8s linear infinite}
+@keyframes beaconFlash{to{filter:brightness(1.55)}}
+@keyframes beamRotate{from{rotate:0deg}to{rotate:360deg}}
+@keyframes beamRotateReverse{from{rotate:180deg}to{rotate:540deg}}
+.allowance-module{max-width:760px;margin:14px auto;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:17px 21px;background:#101824;border:1px solid var(--line)}
+.allowance-copy strong{display:block;margin-top:5px;font-size:17px}
+.allowance-copy small{display:block;margin-top:3px;color:var(--muted);font-size:10px}
+.tea-indicators{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.tea-icon{display:grid;place-items:center;width:37px;height:37px;border:1px solid #385064;background:#172b3a;color:#f4f7fb;font-size:20px;filter:drop-shadow(0 0 7px #64d8e833);transition:filter .2s,opacity .2s,background .2s}
+.tea-icon.used{background:#202832;border-color:#36404b;color:#68717b;filter:grayscale(1);opacity:.48}
+@media(max-width:640px){
+ .cooldown-module,.allowance-module{max-width:100%;padding:14px}
+ .request-card{max-width:100%;min-height:340px;padding:15px 13px 14px}
+ .request-card-copy{padding:42px 42px 30px}
+ .beacon-top-left{top:9px;left:9px}.beacon-top-right{top:9px;right:9px}
+ .beacon-bottom-left{bottom:9px;left:9px}.beacon-bottom-right{bottom:9px;right:9px}
+ .beacon,.beacon-light{width:27px;height:27px}
+ .beacon-light{border-width:2px}
+ .beam{width:clamp(95px,27vw,160px);height:32px}
+ .request-button{width:164px;height:164px}
+ .allowance-module{align-items:flex-start;flex-direction:column}
+ .tea-indicators{gap:7px}
+ .tea-icon{width:34px;height:34px}
+}
+@media(prefers-reduced-motion:reduce){.cooldown-fill:after{animation:none}.request-card.activated .beam,.request-card.activated .beam-two,.request-card.activated .beacon-light{animation:none}}
