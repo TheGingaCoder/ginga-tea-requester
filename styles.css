@@ -78,3 +78,16 @@ button{font:inherit}
 @media(max-width:520px){.app-shell{width:calc(100% - 24px)}.request-view{padding-top:36px}.request-card{padding:24px 16px}.admin-view{padding-top:18px}.panel-card{padding:16px}.request-row{align-items:flex-start;flex-direction:column}.fulfil-button{width:100%;min-height:44px}.quick-control{align-items:flex-start;flex-direction:column}.quick-control .outline-button{width:100%;min-height:44px}}
 
 .system-message{display:none!important}
+
+/* Absolute minimum requester interface */
+.topbar{display:none!important}
+.request-view{padding:0;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px}
+.minimal-status{width:min(100%,360px);display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:13px}
+.admin-link{padding:4px 0;border:0;background:transparent;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer}
+.request-card{width:min(100%,360px);margin:0;padding:24px 20px;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible}
+.request-card-copy h2{margin:0 0 6px;font-size:19px;font-weight:600}
+.request-card-copy p{min-height:20px;margin:0;color:var(--muted);font-size:13px}
+.request-button{max-width:none;height:58px;margin:20px auto 0;border-radius:6px}
+.request-button span{font-size:15px;letter-spacing:0}
+.current-request,.hero-copy,.cooldown-module,.allowance-module,.page-footer,.console-topline,.console-bottomline,.beacon,.system-message{display:none!important}
+@media(max-width:520px){.request-view{padding:20px 0}.request-card{padding:18px 12px}.minimal-status,.request-card{width:100%}}
