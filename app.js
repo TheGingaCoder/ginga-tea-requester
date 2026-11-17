@@ -57,7 +57,6 @@ function render() {
   requestButton.querySelector(".request-button-label").innerHTML = allowed
     ? "TEA"
     : '<i class="fa-solid fa-lock" aria-label="Locked"></i>';
-  requestButton.querySelector(".button-sub").textContent = allowed ? "INITIATE REQUEST" : "REQUEST UNAVAILABLE";
   const active = latestRequest();
   $("request-card").classList.toggle("activated", Boolean(active && active.status === "Pending"));
   $("cooldown-value").textContent = cooldown > 0 ? duration(cooldown) : "Available now";
