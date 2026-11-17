@@ -330,3 +330,47 @@
 .request-row button.fulfil-button{min-height:46px;padding:11px 16px;border:1px solid #3c9b70;border-radius:12px;background:linear-gradient(135deg,#1d754f,#14583d);color:#fff;font:600 12px 'Space Grotesk',sans-serif;cursor:pointer;box-shadow:0 5px 16px #0003}
 .request-row button.fulfil-button:hover{filter:brightness(1.15);transform:translateY(-1px)}
 @media(max-width:640px){.quick-control{align-items:stretch;flex-direction:column;gap:12px}.quick-control .outline-button{width:100%}.request-row{align-items:stretch;flex-direction:column}.request-row button.fulfil-button{width:100%;min-height:50px}.priority-requests-card .panel-title{align-items:flex-start}}
+
+
+/* BASIC MODE — retain the original sci-fi request control and essential actions */
+.topbar{height:54px;border-bottom:0;justify-content:flex-end}
+.brand{display:none!important}
+.topbar-right{gap:14px}
+.icon-button{width:40px;height:40px}
+.request-view{padding:12px 0 28px}
+.hero-copy,.cooldown-module,.allowance-module,.current-request,.page-footer{display:none!important}
+.request-card{max-width:660px;min-height:390px;margin:22px auto 0}
+.request-card-copy{padding:34px 110px 30px}
+.request-card-copy h2{margin:0 0 6px}
+.request-card-copy p{margin:6px 0;color:#91a0b2}
+.request-button{width:210px;height:210px;margin:25px auto 17px}
+.request-button-label{display:grid;place-items:center;min-height:58px}
+.request-button-label .fa-lock{font-size:48px;line-height:1}
+@media(max-width:640px){
+ .request-view{padding:8px 0 20px}
+ .request-card{max-width:100%;min-height:340px;margin-top:18px;padding:15px 13px 14px}
+ .request-card-copy{padding:42px 42px 30px}
+ .request-button{width:164px;height:164px}
+ .request-button span{font-size:42px}
+}
+.admin-view{padding:18px 0 30px}
+.admin-header{display:flex;align-items:center;gap:10px;margin:0 0 14px}
+.admin-header .eyebrow,.admin-header h1,.admin-header>p:last-child{display:none!important}
+.admin-header .back-button{margin:0}
+.admin-tabs{display:none!important}
+.admin-panel{padding-top:0}
+.metric-grid{display:none!important}
+.quick-controls-card .panel-title{display:none}
+.quick-controls-card .quick-control:first-of-type{display:none!important}
+.quick-control{padding:8px 0;border-top:0}
+.quick-control>div p{display:none}
+.priority-requests-card{margin-top:12px}
+.priority-requests-card .panel-title .eyebrow,
+.priority-requests-card>p.muted{display:none}
+.priority-requests-card .panel-title h2{font-size:18px}
+#panel-overview>.panel-card:not(.quick-controls-card):not(.priority-requests-card){display:none!important}
+#panel-settings,#panel-requests,#panel-statistics,#panel-devices{display:none!important}
+@media(max-width:640px){
+ .admin-header{gap:8px}
+ .quick-control .outline-button{width:100%;min-height:46px}
+}
