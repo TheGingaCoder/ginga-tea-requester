@@ -5,6 +5,7 @@ const $ = id => document.getElementById(id);
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let data = {settings:{open:"07:00",close:"22:00",cooldown:60,limit:4,enabled:true,sound:false},requests:[]};
 let admin = false, channel = null, toastTimer, audioContext;
+let settingsDirty = false;
 
 const personality = {
  ready:["ALL SYSTEMS OPERATIONAL.","KETTLE LINK ESTABLISHED. AWAITING AUTHORISATION.","BEVERAGE RESPONSE UNIT STANDING BY."],
@@ -97,7 +98,12 @@ function renderAdmin(){
  $("metric-today").textContent=today.length;$("metric-pending").textContent=pending.length;$("metric-fulfilled").textContent=fulfilled.length;
  $("admin-availability").textContent=!data.settings.enabled?"Disabled":isOpen()?"Open":"Closed";$("admin-availability").className="status-pill "+(data.settings.enabled&&isOpen()?"fulfilled":"pending");
  $("admin-availability-detail").textContent="Requests are accepted between "+data.settings.open+" and "+data.settings.close+" UK time.";
- $("open-time").value=data.settings.open;$("close-time").value=data.settings.close;$("cooldown-setting").value=data.settings.cooldown;$("limit-setting").value=data.settings.limit;
+ if(!settingsDirty){
+  $("open-time").value=data.settings.open;
+  $("close-time").value=data.settings.close;
+  $("cooldown-setting").value=data.settings.cooldown;
+  $("limit-setting").value=data.settings.limit;
+ }
  $("system-toggle").innerHTML=data.settings.enabled?'<i class="fa-solid fa-power-off"></i> Disable requests':'<i class="fa-solid fa-power-off"></i> Enable requests';
  $("pending-list").innerHTML=pending.length?pending.slice().reverse().map(requestRow).join(""):'<p class="muted">No outstanding requests. A rare moment of peace.</p>';
  $("history-list").innerHTML=data.requests.length?data.requests.slice().reverse().map(requestRow).join(""):'<p class="muted">No requests yet.</p>';renderStatistics();
@@ -124,6 +130,7 @@ async function saveSettings(e){
  if(!open||!close||open===close||!Number.isInteger(cooldown)||cooldown<1||cooldown>1440||!Number.isInteger(limit)||limit<1||limit>100){$("settings-feedback").textContent="Please enter valid hours, cooldown and daily limit.";return;}
  const r=await db.from("tea_settings").update({opens_at:open,closes_at:close,cooldown_minutes:cooldown,daily_limit:limit,updated_at:new Date().toISOString()}).eq("id",1);
  if(r.error){$("settings-feedback").textContent="Could not save rules. Check administrator permissions.";return;}
+ settingsDirty=false;
  data.settings.sound=$("sound-enabled").checked;saveSound();$("settings-feedback").textContent="Rules saved to the shared database.";await loadState();toast("SYSTEM PARAMETERS UPDATED.");
 }
 async function toggleSystem(){
@@ -138,6 +145,8 @@ $("admin-back-login").addEventListener("click",closeAdmin);
 $("login-form").addEventListener("submit",login);
 $("admin-logout").addEventListener("click",logout);
 $("system-toggle").addEventListener("click",toggleSystem);
+$("settings-form").addEventListener("input",()=>{settingsDirty=true;$("settings-feedback").textContent="Unsaved changes." ;});
+$("settings-form").addEventListener("change",()=>{settingsDirty=true;$("settings-feedback").textContent="Unsaved changes.";});
 $("settings-form").addEventListener("submit",saveSettings);
 $("sound-enabled").addEventListener("change",()=>{data.settings.sound=$("sound-enabled").checked;saveSound();});
 document.querySelectorAll(".admin-tab").forEach(b=>b.addEventListener("click",()=>switchPanel(b.dataset.panel)));
