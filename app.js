@@ -93,7 +93,14 @@ function submitRequest() {
   saveData(); render();
   $("request-heading").textContent = "CONTRACT IN EFFECT";
   $("request-description").textContent = "Request accepted. Tea is now contractually owed.";
-  $("request-card").classList.add("activated");
+  $("request-card").classList.add("activated", "just-accepted");
+  requestButton.classList.remove("just-pressed");
+  void requestButton.offsetWidth;
+  requestButton.classList.add("just-pressed");
+  window.setTimeout(() => {
+    requestButton.classList.remove("just-pressed");
+    $("request-card").classList.remove("just-accepted");
+  }, 850);
   toast("Tea request accepted. The contract is active.");
 }
 
