@@ -3,7 +3,7 @@ const elementDefs=[
  {id:"tagline",name:"Contract tagline",kind:"text",text:"The Contract Is In Effect"},
  {id:"cooldown-panel",name:"Cooldown panel",kind:"container",text:""},
  {id:"cooldown-label",name:"Cooldown status",kind:"text",text:"Available now"},
- {id:"cooldown-progress",name:"Cooldown progress bar",kind:"indicator",text:""},
+ {id:"cooldown-progress",name:"Cooldown progress bar",kind:"indicator",text:"",progress:45},
  {id:"main-panel",name:"Main control panel",kind:"container",text:""},
  {id:"heading",name:"Main heading",kind:"text",text:"Tea Available"},
  {id:"description",name:"Main description",kind:"text",text:"You may request a cuppa"},
@@ -40,6 +40,7 @@ function selectElement(id){
  selectedId=id;const def=elementDefs.find(e=>e.id===id),cfg=currentConfig();
  $("selected-name").textContent=def.name;$("element-text").value=cfg.text;$("element-text").disabled=def.kind==="container"||def.kind==="indicator";
  $("element-visible").checked=cfg.visible;$("element-enabled").checked=cfg.enabled;
+ $("progress-editor").hidden=id!=="cooldown-progress";$("progress-value").value=cfg.progress??0;$("progress-value-label").textContent=(cfg.progress??0)+"%";
  document.querySelectorAll("[data-element]").forEach(el=>el.classList.toggle("selected",el.dataset.element===id));
  renderList();
 }
@@ -48,7 +49,7 @@ function renderPreview(){
  el.classList.toggle("is-hidden",!cfg.visible);el.classList.toggle("is-disabled",!cfg.enabled);
  if(["tagline","cooldown-label","heading","description","tea-button","allowance-label","allowance-value"].includes(def.id)){el.textContent=cfg.text;}
  if(def.id==="tea-button")el.disabled=!cfg.enabled;
- if(def.id==="cooldown-progress")el.querySelector("span").style.width=currentState==="available"?"0%":currentState==="cooldown"?"72%":"100%";
+ if(def.id==="cooldown-progress"){const fill=cfg.enabled?(cfg.progress??0):0;el.querySelector("span").style.width=fill+"%";el.classList.toggle("progress-active",cfg.enabled&&fill>0);}
  if(def.id==="cup-indicators"){const used=currentState==="daily-limit"?4:1;[...el.children].forEach((cup,i)=>cup.style.opacity=i<used?".35":"1");}
  }
  $("preview-state").textContent=states.find(s=>s.id===currentState).label.toUpperCase();
@@ -56,7 +57,7 @@ function renderPreview(){
  renderList();
 }
 function updateSelectionFromInputs(){
- const cfg=currentConfig();cfg.text=$("element-text").value;cfg.visible=$("element-visible").checked;cfg.enabled=$("element-enabled").checked;renderPreview();markChanged();
+ const cfg=currentConfig();cfg.text=$("element-text").value;cfg.visible=$("element-visible").checked;cfg.enabled=$("element-enabled").checked;if(selectedId==="cooldown-progress")cfg.progress=Number($("progress-value").value);renderPreview();markChanged();
 }
 function exportDesign(){
  design.name=$("layout-name").value.trim()||"Untitled Tea Layout";
@@ -77,6 +78,7 @@ function init(){
  $("element-text").addEventListener("input",updateSelectionFromInputs);
  $("element-visible").addEventListener("change",updateSelectionFromInputs);
  $("element-enabled").addEventListener("change",updateSelectionFromInputs);
+ $("progress-value").addEventListener("input",e=>{currentConfig().progress=Number(e.target.value);$("progress-value-label").textContent=e.target.value+"%";renderPreview();markChanged();});
  $("export-button").addEventListener("click",exportDesign);
  $("reset-state").addEventListener("click",resetState);$("reset-all").addEventListener("click",resetAll);
  document.querySelectorAll("[data-element]").forEach(el=>{el.addEventListener("click",e=>{e.stopPropagation();selectElement(el.dataset.element);});});
