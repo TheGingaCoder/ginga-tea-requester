@@ -16,7 +16,7 @@ const personality = {
  accepted:["CONTRACTUAL OBLIGATION INITIATED.","REQUEST ACCEPTED. THE TEA DEBT IS NOW ACTIVE.","A NEW TEA CONTRACT HAS BEEN REGISTERED."],
  fulfilled:["DELIVERY CONFIRMED. EXCELLENT WORK.","CONTRACT SATISFIED. RECORDS UPDATED.","TEA DELIVERY VERIFIED. STAND DOWN."]
 };
-function setPersonality(state){const a=personality[state]||personality.ready;$("system-message-text").textContent=a[Math.floor(Math.random()*a.length)];$("system-message").dataset.state=state;}
+function setPersonality(state){const a=personality[state]||personality.ready;const message=$("system-message-text"),panel=$("system-message");if(message)message.textContent=a[Math.floor(Math.random()*a.length)];if(panel)panel.dataset.state=state;}
 function toast(message){const e=$("toast");e.textContent=message;e.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove("show"),2600);}
 function ukDate(d=new Date()){return new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/London",year:"numeric",month:"2-digit",day:"2-digit"}).format(d);}
 function ukMinutes(){const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/London",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date());return Number(p.find(x=>x.type==="hour").value)*60+Number(p.find(x=>x.type==="minute").value);}
@@ -35,7 +35,7 @@ function playFulfilled(){playTones([[660,0,.12],[880,.13,.16],[1100,.3,.22]]);}
 function playDenied(){playTones([[180,0,.22,"triangle"],[130,.2,.3,"triangle"]]);}
 function saveSound(){localStorage.setItem(PREF_KEY,JSON.stringify({sound:data.settings.sound}));}
 function loadSound(){try{data.settings.sound=Boolean(JSON.parse(localStorage.getItem(PREF_KEY)||"{}").sound);}catch{}$("sound-enabled").checked=data.settings.sound;}
-function showConnectionError(e){console.error("Supabase error:",e);$("availability-label").textContent="Connection issue";$("system-message-text").textContent="DATABASE CONNECTION INTERRUPTED. RETRYING.";}
+function showConnectionError(e){console.error("Supabase error:",e);$("availability-label").textContent="Connection issue";if($("request-heading"))$("request-heading").textContent="Connection interrupted";if($("request-description"))$("request-description").textContent="The tea system is reconnecting to its database.";}
 function fromRequest(r){return {id:r.id,createdAt:r.created_at,status:r.status,fulfilledAt:r.fulfilled_at};}
 async function loadState(){
  const results=await Promise.all([db.from("tea_settings").select("*").eq("id",1).single(),db.from("tea_requests").select("*").order("created_at",{ascending:true})]);
