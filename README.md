@@ -1,32 +1,37 @@
-# Paws & Paths Visual Prototype
+# Ginga Tea Requester
 
-Design-focused clickable mockup for a native-style dog walking app inspired by Apple Maps.
+A responsive, interactive front-end prototype for the Ginga Tea Requester.
 
-This prototype intentionally does not implement real GPS tracking, route persistence, accounts, authentication, scoring, or destructive data actions. It demonstrates the app shell, visual direction, tabs, cards, modals, and sample content.
+## Included
+- One-button standard tea request flow
+- UK-time opening hours (07:00–22:00)
+- 60-minute cooldown and four-request daily limit
+- Remaining-request and cooldown display
+- Pending / fulfilled request lifecycle
+- Admin interface for rules, request history and statistics
+- Local browser notification permission/test
+- Dark sci-fi control-room visual design
+- Large red TEA emergency button with rotating warning lights on acceptance
+- CONTRACT IN EFFECT activation state
 
-The current mock map visual style is a keeper. When the real functional map is rebuilt later, preserve this soft Apple Maps-inspired look: calm roads, parks, rounded labels, floating glass controls, and route lines that feel integrated rather than technical.
+## Important limitation
+This is a **front-end prototype**, not a production multi-device app. Requests and settings are stored in this browser's localStorage. Admin access is not authenticated. Browser notifications are local only; remote push notifications are not connected.
 
-The Dogs tab now stores local dog profiles in `localStorage`, including uploaded profile photos as local data URLs.
+The next implementation stage needs a persistent database and server-side API so request acceptance, cooldowns, daily limits, admin authentication, and device subscriptions are enforced centrally.
 
-## Structure
-
-- `index.html` - app shell and static map mockup
-- `styles.css` - Apple-inspired visual system and responsive app layout
-- `app.js` - simple tab switching, mock modals, and toast behaviour
-
-## Run Locally
-
-Open `index.html` in a browser, or serve the folder:
+## Run locally
+Serve this folder with any static HTTP server, for example:
 
 ```bash
 npx serve .
 ```
 
-## Prototype Checklist
+Open the local URL printed by the server.
 
-- Four tabs: Map, Routes, Dogs, Account
-- Font Awesome icons throughout
-- Mobile-first app shell
-- Full-screen map mockup
-- Routes and Account use fake/sample data only
-- Dogs can be added, edited, selected, deleted, and restored from local browser storage
+## Defaults
+- Opening: 07:00 UK local time
+- Closing: 22:00 UK local time
+- Cooldown: 60 minutes
+- Daily accepted-request limit: 4
+- Drink: standard tea
+- Accepted requests cannot be cancelled
