@@ -14,14 +14,8 @@
 <body>
   <div class="scanlines" aria-hidden="true"></div><div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
   <main class="app-shell">
-    <header class="topbar">
-      <a class="brand" href="#"><span class="brand-mark">GT<span></span></span><span><strong>GINGA TEA</strong><small>TEA REQUESTER</small></span></a>
-      <div class="topbar-right"><span class="system-indicator"><i class="live-dot"></i><span id="availability-label">Checking availability</span></span><button class="icon-button" id="admin-open" aria-label="Open admin panel"><i class="fa-solid fa-sliders" aria-hidden="true"></i></button></div>
-    </header>
-
     <section class="request-view" id="request-view">
-      <div class="hero-copy"><p class="eyebrow"></p><h1>Request <span>tea</span></h1><p class="intro">Send a tea request.</p>
-      <div class="system-message" id="system-message" role="status"><i class="fa-solid fa-terminal" aria-hidden="true"></i><span id="system-message-text">Ready to take your request.</span></div></div>
+      <div class="minimal-status"><span class="system-indicator"><i class="live-dot"></i><span id="availability-label">Checking availability</span></span><button class="admin-link" id="admin-open" type="button">Admin</button></div>
       <section class="cooldown-module info-card cooldown-card" aria-label="Request cooldown">
         <div class="cooldown-heading"><div class="info-icon"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i></div><div><span class="card-label">NEXT REQUEST</span><strong id="cooldown-value">Available now</strong><small id="cooldown-detail">No cooldown active</small></div></div>
         <div class="cooldown-track" role="progressbar" aria-label="Cooldown remaining" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="cooldown-fill" id="cooldown-progress"></div></div>
@@ -30,7 +24,7 @@
         <div class="beacon beacon-left" aria-hidden="true"><span class="beacon-light"><img class="beam-svg" src="./WarningBeams.svg" alt=""></span></div>
         <div class="beacon beacon-right" aria-hidden="true"><span class="beacon-light"><img class="beam-svg" src="./WarningBeams.svg" alt=""></span></div>
         <div class="console-topline"><span></span><span class="console-code"></span></div>
-        <div class="request-card-copy"><span class="tiny-label">PRIMARY CONTROL</span><h2 id="request-heading">Ready to request tea</h2><p id="request-description">Press the button to request tea.</p><button class="request-button" id="request-button"><span class="request-button-label">TEA</span></button><p class="fine-print"></p></div>
+        <div class="request-card-copy"><h2 id="request-heading">Ready to request tea</h2><p id="request-description">Press the button to request tea.</p><button class="request-button" id="request-button"><span class="request-button-label">REQUEST TEA</span></button></div>
         <div class="console-bottomline"><span>AUTH: HOUSEHOLD</span><span>CONTRACTUAL OBLIGATION: ENABLED</span></div>
       </section>
       <section class="allowance-module info-card">
