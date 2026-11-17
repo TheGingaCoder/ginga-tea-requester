@@ -91,7 +91,8 @@ function toast(message) {
 function render() {
   const open = isOpen(), remaining = Math.max(0, data.settings.limit - todayRequests().length), cooldown = cooldownMs(), allowed = canRequest();
   $("availability-label").textContent = !data.settings.enabled ? "System disabled" : open ? "Requests are open" : "Requests are closed";
-  const systemState = !data.settings.enabled ? "disabled" : !open ? "closed" : remaining === 0 ? "limit" : cooldown > 0 ? "cooldown" : "ready";
+  const latestForMessage = latestRequest();
+  const systemState = !data.settings.enabled ? "disabled" : !open ? "closed" : remaining === 0 ? "limit" : latestForMessage?.status === "Pending" ? "accepted" : latestForMessage?.status === "Fulfilled" ? "fulfilled" : cooldown > 0 ? "cooldown" : "ready";
   if ($("system-message").dataset.state !== systemState) setPersonality(systemState);
   $("request-heading").textContent = allowed ? "Tea, please." : !data.settings.enabled ? "System offline." : !open ? "We're closed for tea." : remaining === 0 ? "That's enough tea today." : "Just a little longer.";
   $("request-description").textContent = allowed ? "Press below to submit your official tea request." : !data.settings.enabled ? "The administrator has suspended beverage operations." : !open ? `Requests open at ${data.settings.open} (UK time).` : remaining === 0 ? "You've reached today's request limit. Requests reopen at midnight." : `Your next request is available in ${duration(cooldown)}.`;
