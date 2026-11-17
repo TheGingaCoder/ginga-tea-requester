@@ -11,6 +11,7 @@ create table if not exists public.tea_settings (
   cooldown_minutes integer not null default 60 check (cooldown_minutes between 1 and 1440),
   daily_limit integer not null default 4 check (daily_limit between 1 and 100),
   requests_enabled boolean not null default true,
+  hours_override boolean not null default false,
   updated_at timestamptz not null default now()
 );
 
@@ -85,12 +86,12 @@ begin
 
   if not v_settings.requests_enabled then raise exception 'Requests are disabled'; end if;
 
-  if v_settings.opens_at < v_settings.closes_at then
+  if not v_settings.hours_override and v_settings.opens_at < v_settings.closes_at then
     if v_local::time < v_settings.opens_at or v_local::time >= v_settings.closes_at then
       raise exception 'Requests are outside opening hours';
     end if;
-  else
-    if v_local::time < v_settings.opens_at and v_local::time >= v_settings.closes_at then
+  elsif not v_settings.hours_override then
+    if v_local::time >= v_settings.closes_at and v_local::time < v_settings.opens_at then
       raise exception 'Requests are outside opening hours';
     end if;
   end if;
