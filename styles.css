@@ -886,3 +886,26 @@ body{
   .tea-icon{width:32px;height:32px;flex-basis:32px}
   .tea-icon .fa-solid{font-size:15px}
 }
+
+
+/* Exact supplied wordmark and Orbitron typography */
+body,
+body *:not(i):not([class*="fa-"]):not(svg):not(path){
+  font-family:'Orbitron',sans-serif!important;
+}
+.contract-logo{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:min(100%,455px);
+  margin:0 auto;
+}
+.contract-logo img{
+  display:block;
+  width:100%;
+  height:auto;
+  max-width:455px;
+}
+.contract-tagline{
+  font-family:'Orbitron',sans-serif!important;
+}
