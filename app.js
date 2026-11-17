@@ -144,7 +144,6 @@ document.querySelectorAll(".admin-tab").forEach(b=>b.addEventListener("click",()
 document.addEventListener("click",e=>{const b=e.target.closest("[data-fulfil]");if(b)fulfil(b.dataset.fulfil);});
 $("notification-test").addEventListener("click",async()=>{const f=$("notification-feedback");if(!("Notification"in window)){f.textContent="This browser does not support notifications.";return;}let p=Notification.permission;if(p==="default")p=await Notification.requestPermission();if(p!=="granted"){f.textContent="Notification permission was not granted.";return;}new Notification("Ginga Tea Requester",{body:"Notification test successful. The tea system is listening."});f.textContent="Local browser notification sent. Remote push delivery is not connected yet.";});
 window.addEventListener("focus",()=>loadState().catch(showConnectionError));
-db.auth.onAuthStateChange(async(_event,session)=>{try{await verifyAdmin(session?session.user:null);if(!$("admin-view").hidden)openAdmin();}catch(e){console.error(e);}});
 async function init(){
  loadSound();setPersonality("ready");
  try{await loadState();const s=await db.auth.getSession();if(s.error)throw s.error;await verifyAdmin(s.data.session?s.data.session.user:null);subscribe();if(admin){$("auth-gate").hidden=true;$("admin-console").hidden=false;}}
