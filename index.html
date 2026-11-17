@@ -44,7 +44,20 @@
     </section>
 
     <section class="admin-view" id="admin-view" hidden>
-      <div class="admin-header"><button class="back-button" id="admin-back"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to requester</button><p class="eyebrow">SYSTEM ADMINISTRATION</p><h1>CONTROL ROOM</h1><p>Operational settings and contract records.</p></div>
+      <div class="auth-gate" id="auth-gate" hidden>
+        <div class="panel-card auth-card">
+          <p class="eyebrow">RESTRICTED ACCESS</p><h2>ADMINISTRATOR LOGIN</h2>
+          <p class="muted">Sign in with the administrator account registered in Supabase.</p>
+          <form id="login-form">
+            <label>Email address<input type="email" id="login-email" autocomplete="username" required></label>
+            <label>Password<input type="password" id="login-password" autocomplete="current-password" required></label>
+            <button class="solid-button" type="submit">Sign in</button>
+            <p class="muted" id="login-feedback" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+      <div id="admin-console" hidden>
+      <div class="admin-header"><button class="back-button" id="admin-logout"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Sign out</button><button class="back-button" id="admin-back"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to requester</button><p class="eyebrow">SYSTEM ADMINISTRATION</p><h1>CONTROL ROOM</h1><p>Operational settings and contract records.</p></div>
       <nav class="admin-tabs"><button class="admin-tab active" data-panel="overview">Overview</button><button class="admin-tab" data-panel="settings">Rules</button><button class="admin-tab" data-panel="requests">Requests</button><button class="admin-tab" data-panel="statistics">Statistics</button><button class="admin-tab" data-panel="devices">Devices</button></nav>
       <section class="admin-panel active" id="panel-overview">
         <div class="metric-grid"><article class="metric-card"><span>Accepted today</span><strong id="metric-today">0</strong></article><article class="metric-card"><span>Pending</span><strong id="metric-pending">0</strong></article><article class="metric-card"><span>Fulfilled</span><strong id="metric-fulfilled">0</strong></article></div>
@@ -67,9 +80,11 @@
       </section>
       <section class="admin-panel" id="panel-devices"><div class="panel-card"><div class="panel-title"><div><p class="eyebrow">PUSH NOTIFICATIONS</p><h2>Registered devices</h2></div></div><p class="muted">Automatic device registration and real push subscriptions will be connected in the backend build. This preview can only demonstrate browser permission on this device.</p><button class="outline-button" id="notification-test"><i class="fa-solid fa-bell" aria-hidden="true"></i> Test browser notification</button><p class="muted" id="notification-feedback" aria-live="polite"></p></div></section>
       <div class="prototype-note"><strong>Prototype build</strong><span>Requests and settings are stored in this browser only. Server-side validation, shared data, secure admin login and remote push delivery are not connected yet.</span></div>
+      </div>
     </section>
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./app.js"></script>
 </body>
 </html>
