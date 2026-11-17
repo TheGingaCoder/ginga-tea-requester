@@ -248,3 +248,23 @@
 @media(prefers-reduced-motion:reduce){.request-card.activated .beam,.request-card.activated .beam-two{animation:none}}
 /* The primary control is intentionally just the TEA label; no secondary caption. */
 .request-button-label{min-height:0}
+
+
+/* Use the supplied WarningBeams.svg as the actual rotating beam geometry */
+.beacon{top:50%;width:52px;height:52px;transform:translateY(-50%);z-index:5}
+.beacon-left{left:-48px}
+.beacon-right{right:-48px}
+.beacon-light{width:52px;height:52px;z-index:5;overflow:visible}
+.beacon-light:after{z-index:6}
+.beam-svg{position:absolute;left:50%;top:50%;display:block;width:min(72vw,820px);height:auto;max-width:none;transform:translate(-50%,-50%) rotate(0deg);transform-origin:50% 50%;opacity:0;z-index:1;pointer-events:none;mix-blend-mode:screen;filter:drop-shadow(0 0 12px #ff2945)}
+.beacon-right .beam-svg{transform:translate(-50%,-50%) rotate(180deg)}
+.request-card.activated .beam-svg{opacity:.68;animation:warningBeamSpin 7s linear infinite}
+.request-card.activated .beacon-right .beam-svg{animation-direction:reverse}
+@keyframes warningBeamSpin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes warningBeamSpinRight{from{transform:translate(-50%,-50%) rotate(180deg)}to{transform:translate(-50%,-50%) rotate(-180deg)}}
+@media(max-width:640px){
+ .beacon-left{left:-36px}.beacon-right{right:-36px}
+ .beacon,.beacon-light{width:40px;height:40px}
+ .beam-svg{width:min(86vw,560px)}
+}
+@media(prefers-reduced-motion:reduce){.request-card.activated .beam-svg{animation:none}}
