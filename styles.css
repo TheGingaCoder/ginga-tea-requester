@@ -268,3 +268,15 @@
  .beam-svg{width:min(86vw,560px)}
 }
 @media(prefers-reduced-motion:reduce){.request-card.activated .beam-svg{animation:none}}
+
+
+/* Latest beam artwork: normalized gradient, faster sweep, extra beacon clearance */
+.beacon-left{left:-72px}
+.beacon-right{right:-72px}
+.beam-svg{width:min(78vw,960px);filter:drop-shadow(0 0 10px #ff2945)}
+.request-card.activated .beam-svg{animation-duration:3.6s}
+@media(max-width:640px){
+ .beacon-left{left:-54px}
+ .beacon-right{right:-54px}
+ .beam-svg{width:min(92vw,620px)}
+}
