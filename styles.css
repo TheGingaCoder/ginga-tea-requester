@@ -217,3 +217,34 @@
  .request-button.just-pressed:after,.request-card.just-accepted:after{animation:none;display:none}
  .request-card.activated .beam,.request-card.activated .beam-two{animation:none}
 }
+
+
+/* Two large side-mounted beacons; beam triangles rotate from the lamp centre */
+.request-card{overflow:visible!important;clip-path:none!important;isolation:isolate}
+.request-card-copy,.console-topline,.console-bottomline{position:relative;z-index:4}
+.beacon{position:absolute;top:50%;width:52px;height:52px;transform:translateY(-50%);z-index:3;overflow:visible;pointer-events:none}
+.beacon-left{left:-27px}
+.beacon-right{right:-27px}
+.beacon-light{position:relative;display:block;width:52px;height:52px;border-radius:50%;overflow:visible;isolation:isolate;z-index:3}
+.beacon-light:after{z-index:5}
+.beam{position:absolute;display:block;left:50%;top:50%;width:min(78vw,1040px);height:clamp(100px,13vw,170px);margin:0;transform-origin:0 50%;transform:rotate(var(--beam-start)) translateY(-50%);clip-path:polygon(0 50%,100% 0,100% 100%);opacity:0;z-index:1;pointer-events:none;mix-blend-mode:screen;filter:drop-shadow(0 0 14px #ff293b);background:linear-gradient(90deg,#ff263cbb 0%,#f3233068 62%,#f3233000 100%)}
+.beam-two{height:clamp(76px,10vw,130px);background:linear-gradient(90deg,#ff9aa1a8 0%,#ff3b4a55 62%,#ff3b4a00 100%)}
+.beacon-left .beam-one,.beacon-right .beam-one{--beam-start:-90deg}
+.beacon-left .beam-two,.beacon-right .beam-two{--beam-start:90deg}
+.request-card.activated .beam{opacity:.64;animation:sideBeamClockwise 5.2s linear infinite}
+.request-card.activated .beam-two{opacity:.46;animation:sideBeamCounter 6.3s linear infinite}
+.request-card.activated .beacon-right .beam-one{animation-name:sideBeamCounter}
+.request-card.activated .beacon-right .beam-two{animation-name:sideBeamClockwise}
+@keyframes sideBeamClockwise{from{transform:rotate(var(--beam-start)) translateY(-50%)}to{transform:rotate(calc(var(--beam-start) + 360deg)) translateY(-50%)}}
+@keyframes sideBeamCounter{from{transform:rotate(var(--beam-start)) translateY(-50%)}to{transform:rotate(calc(var(--beam-start) - 360deg)) translateY(-50%)}}
+.request-card.activated .beacon-light{animation:beaconFlash .55s ease-in-out infinite alternate}
+@media(max-width:640px){
+ .beacon{width:38px;height:38px}
+ .beacon-left{left:-20px}.beacon-right{right:-20px}
+ .beacon-light{width:38px;height:38px}
+ .beam{width:94vw;height:76px}
+ .beam-two{height:58px}
+}
+@media(prefers-reduced-motion:reduce){.request-card.activated .beam,.request-card.activated .beam-two{animation:none}}
+/* The primary control is intentionally just the TEA label; no secondary caption. */
+.request-button-label{min-height:0}
