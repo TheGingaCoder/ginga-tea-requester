@@ -76,3 +76,5 @@ button{font:inherit}
 .toast{position:fixed;left:50%;bottom:20px;z-index:10;max-width:calc(100% - 32px);padding:11px 15px;border-radius:7px;background:#202124;color:#fff;font-size:13px;opacity:0;pointer-events:none;transform:translate(-50%,10px);transition:opacity .15s,transform .15s}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 @media(max-width:520px){.app-shell{width:calc(100% - 24px)}.request-view{padding-top:36px}.request-card{padding:24px 16px}.admin-view{padding-top:18px}.panel-card{padding:16px}.request-row{align-items:flex-start;flex-direction:column}.fulfil-button{width:100%;min-height:44px}.quick-control{align-items:flex-start;flex-direction:column}.quick-control .outline-button{width:100%;min-height:44px}}
+
+.system-message{display:none!important}
