@@ -22,12 +22,15 @@
       <div class="hero-copy"><p class="eyebrow">DOMESTIC BEVERAGE RESPONSE SYSTEM <span>/// GT-RQ-01</span></p><h1>TEA<br><span>REQUEST</span><i>PROTOCOL</i></h1><p class="intro">A direct line to the kettle. Use only when a brew is required.</p></div>
       <section class="request-card" id="request-card">
         <div class="console-topline"><span>MANUAL REQUEST OVERRIDE</span><span class="console-code">SYS // 001</span></div>
-        <div class="siren-array" aria-hidden="true"><span class="siren"><i></i></span><span class="siren"><i></i></span><span class="siren"><i></i></span></div>
-        <div class="request-card-copy"><span class="tiny-label">PRIMARY CONTROL</span><h2 id="request-heading">SYSTEM READY</h2><p id="request-description">Press the control to issue an official tea request.</p><button class="request-button" id="request-button"><span>TEA</span><b class="button-sub">INITIATE REQUEST</b></button><p class="fine-print">WARNING: ACCEPTED REQUESTS ARE IRREVOCABLE.</p></div>
+        <div class="console-main">
+          <div class="siren-stack left" aria-hidden="true"><span class="siren"><i></i><i></i></span></div>
+          <div class="request-card-copy"><span class="tiny-label">PRIMARY CONTROL</span><h2 id="request-heading">SYSTEM READY</h2><p id="request-description">Press the control to issue an official tea request.</p><button class="request-button" id="request-button"><span>TEA</span><b class="button-sub">INITIATE REQUEST</b></button><p class="fine-print">WARNING: ACCEPTED REQUESTS ARE IRREVOCABLE.</p></div>
+          <div class="siren-stack right" aria-hidden="true"><span class="siren"><i></i><i></i></span></div>
+        </div>
         <div class="console-bottomline"><span>AUTH: HOUSEHOLD</span><span>CONTRACTUAL OBLIGATION: ENABLED</span></div>
       </section>
       <section class="status-grid">
-        <article class="info-card"><div class="info-icon">T−</div><div><span class="card-label">NEXT REQUEST</span><strong id="cooldown-value">Available now</strong><small id="cooldown-detail">No cooldown active</small></div></article>
+        <article class="info-card cooldown-card"><div class="cooldown-heading"><div class="info-icon">T−</div><div><span class="card-label">NEXT REQUEST</span><strong id="cooldown-value">Available now</strong><small id="cooldown-detail">No cooldown active</small></div></div><div class="cooldown-track" role="progressbar" aria-label="Cooldown progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div class="cooldown-fill" id="cooldown-progress"></div></div></article>
         <article class="info-card"><div class="info-icon">№</div><div><span class="card-label">TODAY'S ALLOWANCE</span><strong id="remaining-value">4 of 4 left</strong><small id="remaining-detail">Make them count.</small></div></article>
       </section>
       <section class="current-request" id="current-request" hidden><div class="section-heading"><div><p class="eyebrow">CONTRACT MONITOR</p><h2>Active request</h2></div><span class="status-pill pending" id="request-status">Pending</span></div><div class="current-request-body"><div class="mini-cup">GT</div><div><strong id="current-request-title">Tea requested!</strong><p id="current-request-time">Your request has been accepted.</p><small id="current-request-note">The tea is officially owed.</small></div></div></section>
