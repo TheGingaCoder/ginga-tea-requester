@@ -55,19 +55,51 @@ function subscribe(){
  .on("postgres_changes",{event:"*",schema:"public",table:"tea_requests"},()=>loadState().catch(showConnectionError))
  .subscribe(s=>{if(s==="CHANNEL_ERROR")console.error("Realtime channel error");});
 }
+function clockText(ms){const s=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;return [h,m,r].map(v=>String(v).padStart(2,"0")).join(":");}
+function untilMidnightMs(){const m=ukMinutes();return Math.max(1000,(1440-m)*60000);}
+function untilOpeningMs(){const now=ukMinutes(),opening=mins(data.settings.open);let delta=(opening-now+1440)%1440;if(delta===0)delta=1440;return delta*60000;}
 function render(){
  const open=isOpen(),remaining=Math.max(0,data.settings.limit-todayRequests().length),cooldown=cooldownMs(),allowed=canRequest(),latest=latestRequest();
+ const pending=Boolean(latest&&latest.status==="Pending");
+ const fulfilled=Boolean(latest&&latest.status==="Fulfilled"&&cooldown>0);
+ const state=!data.settings.enabled?"disabled":!open?"closed":remaining===0?"limit":pending?"accepted":fulfilled?"fulfilled":cooldown>0?"cooldown":"ready";
+ if($("system-message")&&$("system-message").dataset.state!==state)setPersonality(state);
+
+ const layouts={
+  ready:{label:"Available now",heading:"Tea Available",description:"You may request a cuppa",lock:false},
+  cooldown:{label:"On Cooldown",heading:"On Cooldown",description:"Seems like you've recently requested a cuppa, please wait ##:##",lock:true},
+  limit:{label:"Daily Allowance Reached",heading:"Limit Reached",description:"You've ran out of Tea Allowance for today. Your Limit resets at 12:00am",lock:true},
+  closed:{label:"Outside Hours",heading:"Outside Hours",description:"Come back at 7:00am for your next Tea",lock:true},
+  disabled:{label:"System Disabled",heading:"System Disabled",description:"The Administrator has manually locked the system.",lock:true},
+  accepted:{label:"On Cooldown",heading:"The Tea Is Brewing",description:"Your request has been noted and in in progress.",lock:true},
+  fulfilled:{label:"On Cooldown",heading:"Tea Fulfilled",description:"Your last request was fulfilled, please wait for your cooldown to finish.",lock:true}
+ };
+ const layout=layouts[state];
  $("availability-label").textContent=!data.settings.enabled?"System disabled":open?"Requests are open":"Requests are closed";
- const state=!data.settings.enabled?"disabled":!open?"closed":remaining===0?"limit":latest&&latest.status==="Pending"?"accepted":latest&&latest.status==="Fulfilled"?"fulfilled":cooldown>0?"cooldown":"ready";
- if($("system-message").dataset.state!==state)setPersonality(state);
- $("request-heading").textContent=latest&&latest.status==="Pending"?"CONTRACT IN EFFECT":allowed?"Tea Available":!data.settings.enabled?"System offline.":!open?"We're closed for tea.":remaining===0?"That's enough tea today.":"Just a little longer.";
- $("request-description").textContent=allowed?"You may request a cuppa":!data.settings.enabled?"The administrator has suspended beverage operations.":!open?"Requests open at "+data.settings.open+" (UK time).":remaining===0?"You've reached today's request limit. Requests reopen at midnight.":"Your next request is available in "+duration(cooldown)+".";
- $("request-button").disabled=!allowed;$("request-button").querySelector(".request-button-label").innerHTML=allowed?"TEA":'<i class="fa-solid fa-lock" aria-label="Locked"></i>';
- $("request-card").classList.toggle("activated",Boolean(latest&&latest.status==="Pending"));
- const cooldownSeconds=Math.ceil(cooldown/1000);const cooldownClock=[Math.floor(cooldownSeconds/3600),Math.floor(cooldownSeconds%3600/60),cooldownSeconds%60].map(v=>String(v).padStart(2,"0")).join(":");$("cooldown-value").textContent=cooldown>0?cooldownClock+" Remaining":"Available now";$("cooldown-detail").textContent=cooldown>0?"Time remaining before next request":"No cooldown active";
- const pct=Math.max(0,Math.min(100,cooldown/Math.max(1,data.settings.cooldown*60000)*100));$("cooldown-progress").style.width=pct+"%";$("cooldown-progress").parentElement.setAttribute("aria-valuenow",String(Math.round(pct)));
- $("remaining-value").textContent=remaining+"/"+data.settings.limit+" Remaining";$("remaining-detail").textContent=remaining===0?"All today's requests have been used.":remaining+" request"+(remaining===1?"":"s")+" still available today.";
- $("tea-indicators").innerHTML=Array.from({length:data.settings.limit},(_,i)=>'<span class="tea-icon '+(i>=remaining?"used":"unused")+'" aria-hidden="true"><i class="fa-solid fa-mug-hot"></i></span>').join("");$("tea-indicators").setAttribute("aria-label",remaining+" of "+data.settings.limit+" tea requests remaining");
+ $("contract-tagline").textContent="The Contract Is In Effect";
+ $("cooldown-label").textContent=layout.label;
+ $("request-heading").textContent=layout.heading;
+ let description=layout.description;
+ if(state==="cooldown")description=description.replace("##:##",clockText(cooldown).slice(3,8));
+ $("request-description").textContent=description;
+
+ const timer=state==="limit"?untilMidnightMs():state==="closed"?untilOpeningMs():cooldown;
+ $("cooldown-value").textContent=state==="disabled"?"SYSTEM OFFLINE":state==="ready"?"Available now":clockText(timer)+" Remaining";
+ $("cooldown-detail").textContent=state==="limit"?"Time until the daily allowance resets":state==="closed"?"Time until tea service reopens":cooldown>0?"Time remaining before the next request":"No cooldown active";
+ const progressStates=["cooldown","accepted","fulfilled"];
+ const pct=progressStates.includes(state)?Math.max(0,Math.min(100,cooldown/Math.max(1,data.settings.cooldown*60000)*100)):0;
+ $("cooldown-progress").style.width=pct+"%";
+ $("cooldown-progress").parentElement.setAttribute("aria-valuenow",String(Math.round(pct)));
+
+ const button=$("request-button"),label=button.querySelector(".request-button-label"),lock=button.querySelector(".request-lock");
+ label.hidden=layout.lock;lock.hidden=!layout.lock;label.textContent="TEA";
+ button.disabled=!allowed;button.setAttribute("aria-label",allowed?"Request tea":"Tea request unavailable");
+ $("request-card").classList.toggle("activated",pending);
+ $("remaining-label").textContent="Tea Allowance";
+ $("remaining-value").textContent=remaining+"/"+data.settings.limit+" Remaining";
+ $("remaining-detail").textContent=remaining===0?"All today's requests have been used.":remaining+" request"+(remaining===1?"":"s")+" still available today.";
+ $("tea-indicators").innerHTML=Array.from({length:data.settings.limit},(_,i)=>'<span class="tea-icon '+(i>=remaining?"used":"unused")+'" aria-hidden="true"><i class="fa-solid fa-mug-hot"></i></span>').join("");
+ $("tea-indicators").setAttribute("aria-label",remaining+" of "+data.settings.limit+" tea requests remaining");
  $("current-request").hidden=!latest;
  if(latest){$("request-status").textContent=latest.status;$("request-status").className="status-pill "+(latest.status==="Fulfilled"?"fulfilled":"pending");$("current-request-title").textContent=latest.status==="Fulfilled"?"Tea fulfilled.":"Tea requested!";$("current-request-time").textContent="Accepted "+dateLabel(latest.createdAt);$("current-request-note").textContent=latest.status==="Fulfilled"?"A job well steeped.":"The tea is officially owed.";}
  if(admin)renderAdmin();
