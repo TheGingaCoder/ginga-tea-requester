@@ -3,7 +3,7 @@ const SUPABASE_KEY = "sb_publishable_ri3ecPVbIE9gsrvggZm-pQ_DeKQ1mUZ";
 const PREF_KEY = "ginga-tea-requester:preferences";
 const $ = id => document.getElementById(id);
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let data = {settings:{open:"07:00",close:"22:00",cooldown:60,limit:4,enabled:true,sound:false},requests:[]};
+let data = {settings:{open:"07:00",close:"22:00",cooldown:60,limit:4,enabled:true,hoursOverride:false,sound:false},requests:[]};
 let admin = false, channel = null, toastTimer, audioContext;
 let settingsDirty = false;
 
@@ -21,7 +21,7 @@ function toast(message){const e=$("toast");e.textContent=message;e.classList.add
 function ukDate(d=new Date()){return new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/London",year:"numeric",month:"2-digit",day:"2-digit"}).format(d);}
 function ukMinutes(){const p=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/London",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date());return Number(p.find(x=>x.type==="hour").value)*60+Number(p.find(x=>x.type==="minute").value);}
 function mins(v){const a=v.split(":").map(Number);return a[0]*60+a[1];}
-function isOpen(){const n=ukMinutes(),o=mins(data.settings.open),c=mins(data.settings.close);return o<c?n>=o&&n<c:n>=o||n<c;}
+function isOpen(){if(data.settings.hoursOverride)return true;const n=ukMinutes(),o=mins(data.settings.open),c=mins(data.settings.close);return o<c?n>=o&&n<c:n>=o||n<c;}
 function todayRequests(){const k=ukDate();return data.requests.filter(r=>ukDate(new Date(r.createdAt))===k);}
 function latestRequest(){return data.requests.length?data.requests.reduce((a,b)=>Date.parse(a.createdAt)>Date.parse(b.createdAt)?a:b):null;}
 function cooldownMs(){const r=latestRequest();return r?Math.max(0,Date.parse(r.createdAt)+data.settings.cooldown*60000-Date.now()):0;}
@@ -40,7 +40,7 @@ function fromRequest(r){return {id:r.id,createdAt:r.created_at,status:r.status,f
 async function loadState(){
  const results=await Promise.all([db.from("tea_settings").select("*").eq("id",1).single(),db.from("tea_requests").select("*").order("created_at",{ascending:true})]);
  if(results[0].error)throw results[0].error;if(results[1].error)throw results[1].error;
- const s=results[0].data;data.settings={open:s.opens_at.slice(0,5),close:s.closes_at.slice(0,5),cooldown:s.cooldown_minutes,limit:s.daily_limit,enabled:s.requests_enabled,sound:data.settings.sound};
+ const s=results[0].data;data.settings={open:s.opens_at.slice(0,5),close:s.closes_at.slice(0,5),cooldown:s.cooldown_minutes,limit:s.daily_limit,enabled:s.requests_enabled,hoursOverride:Boolean(s.hours_override),sound:data.settings.sound};
  data.requests=results[1].data.map(fromRequest);render();
 }
 async function verifyAdmin(user){
@@ -83,7 +83,7 @@ async function submitRequest(){
  setTimeout(()=>{$("request-button").classList.remove("just-pressed");$("request-card").classList.remove("just-accepted");},850);
  toast("Tea request accepted. The contract is active.");
 }
-function requestRow(r){return '<div class="request-row"><div><strong><i class="fa-solid fa-mug-hot" aria-hidden="true"></i> Tea request · '+escapeHtml(r.status)+'</strong><small>'+dateLabel(r.createdAt)+'</small></div>'+(r.status==="Pending"?'<button data-fulfil="'+r.id+'"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark fulfilled</button>':'<span class="status-pill fulfilled"><i class="fa-solid fa-check" aria-hidden="true"></i> Done</span>')+'</div>';}
+function requestRow(r){return '<div class="request-row"><div><strong><i class="fa-solid fa-mug-hot" aria-hidden="true"></i> Tea request · '+escapeHtml(r.status)+'</strong><small>'+dateLabel(r.createdAt)+'</small></div>'+(r.status==="Pending"?'<button class="fulfil-button" data-fulfil="'+r.id+'"><i class="fa-solid fa-check" aria-hidden="true"></i> Fulfil request</button>':'<span class="status-pill fulfilled"><i class="fa-solid fa-check" aria-hidden="true"></i> Fulfilled</span>')+'</div>';}
 function countRecent(days){const cutoff=Date.now()-days*86400000;return data.requests.filter(r=>Date.parse(r.createdAt)>=cutoff).length;}
 function renderStatistics(){
  const total=data.requests.length,first=total?Math.min(...data.requests.map(r=>Date.parse(r.createdAt))):Date.now(),elapsed=Math.max(1,(Date.now()-first)/86400000);
@@ -96,8 +96,10 @@ function renderStatistics(){
 function renderAdmin(){
  const today=todayRequests(),pending=data.requests.filter(r=>r.status==="Pending"),fulfilled=data.requests.filter(r=>r.status==="Fulfilled");
  $("metric-today").textContent=today.length;$("metric-pending").textContent=pending.length;$("metric-fulfilled").textContent=fulfilled.length;
- $("admin-availability").textContent=!data.settings.enabled?"Disabled":isOpen()?"Open":"Closed";$("admin-availability").className="status-pill "+(data.settings.enabled&&isOpen()?"fulfilled":"pending");
- $("admin-availability-detail").textContent="Requests are accepted between "+data.settings.open+" and "+data.settings.close+" UK time.";
+ $("admin-availability").textContent=!data.settings.enabled?"Disabled":data.settings.hoursOverride?"Override active":isOpen()?"Open":"Closed";$("admin-availability").className="status-pill "+(data.settings.enabled&&isOpen()?"fulfilled":"pending");
+ $("admin-availability-detail").textContent=data.settings.hoursOverride?"Opening-hours restriction is bypassed. Cooldown and daily limit still apply.":"Requests are accepted between "+data.settings.open+" and "+data.settings.close+" UK time.";
+ $("hours-override-toggle").textContent=data.settings.hoursOverride?"Turn override off":"Override opening hours";$("hours-override-toggle").classList.toggle("override-active",data.settings.hoursOverride);$("hours-override-detail").textContent=data.settings.hoursOverride?"ACTIVE — requests can be made at any time, subject to the other rules.":"Allow requests outside "+data.settings.open+"–"+data.settings.close+" UK time.";
+ $("pending-count-pill").textContent=pending.length+" PENDING";
  if(!settingsDirty){
   $("open-time").value=data.settings.open;
   $("close-time").value=data.settings.close;
@@ -133,6 +135,12 @@ async function saveSettings(e){
  settingsDirty=false;
  data.settings.sound=$("sound-enabled").checked;saveSound();$("settings-feedback").textContent="Rules saved to the shared database.";await loadState();toast("SYSTEM PARAMETERS UPDATED.");
 }
+async function toggleHoursOverride(){
+ if(!admin)return;const next=!data.settings.hoursOverride;
+ const r=await db.from("tea_settings").update({hours_override:next,updated_at:new Date().toISOString()}).eq("id",1);
+ if(r.error){toast("Could not change opening-hours override.");return;}
+ await loadState();toast(next?"OPENING-HOURS OVERRIDE ENABLED.":"OPENING-HOURS OVERRIDE DISABLED.");
+}
 async function toggleSystem(){
  if(!admin)return;const r=await db.from("tea_settings").update({requests_enabled:!data.settings.enabled,updated_at:new Date().toISOString()}).eq("id",1);
  if(r.error){toast("Could not change system status.");return;}await loadState();setPersonality(data.settings.enabled?"ready":"disabled");toast(data.settings.enabled?"BEVERAGE OPERATIONS RESTORED.":"BEVERAGE OPERATIONS SUSPENDED.");
@@ -145,6 +153,7 @@ $("admin-back-login").addEventListener("click",closeAdmin);
 $("login-form").addEventListener("submit",login);
 $("admin-logout").addEventListener("click",logout);
 $("system-toggle").addEventListener("click",toggleSystem);
+$("hours-override-toggle").addEventListener("click",toggleHoursOverride);
 $("settings-form").addEventListener("input",()=>{settingsDirty=true;$("settings-feedback").textContent="Unsaved changes." ;});
 $("settings-form").addEventListener("change",()=>{settingsDirty=true;$("settings-feedback").textContent="Unsaved changes.";});
 $("settings-form").addEventListener("submit",saveSettings);
