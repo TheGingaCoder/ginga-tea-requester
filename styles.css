@@ -655,3 +655,8 @@ body{
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+
+/* Ensure every admin tab remains accessible after the compact-mode rules. */
+#panel-settings.active,#panel-requests.active,#panel-statistics.active,#panel-devices.active{display:block!important}
+#panel-overview.active{display:block!important}
