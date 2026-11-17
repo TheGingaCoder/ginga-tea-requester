@@ -80,7 +80,7 @@ function render(){
  $("cooldown-label").textContent=layout.label;
  $("request-heading").textContent=layout.heading;
  let description=layout.description;
- if(state==="cooldown")description=description.replace("##:##",clockText(cooldown).slice(3,8));
+ if(state==="cooldown"){const seconds=Math.ceil(cooldown/1000);description=description.replace("##:##",Math.floor(seconds/60)+":"+String(seconds%60).padStart(2,"0"));}
  $("request-description").textContent=description;
 
  const timer=state==="limit"?untilMidnightMs():state==="closed"?untilOpeningMs():cooldown;
