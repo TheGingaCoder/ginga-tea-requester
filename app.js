@@ -762,6 +762,9 @@ async function init() {
   try {
     await loadData();
     subscribeToRemoteChanges();
+    if (new URLSearchParams(window.location.search).get("view") === "admin") {
+      await openAdmin();
+    }
     setInterval(render, 1000);
     supabaseClient.auth.onAuthStateChange((_event, session) => {
       if (!session && admin) closeAdmin();
