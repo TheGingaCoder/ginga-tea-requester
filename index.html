@@ -38,7 +38,7 @@
           <button class="back-button" id="admin-back-login"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to requester</button>
           <p class="eyebrow">RESTRICTED ACCESS</p>
           <h2>ADMINISTRATOR LOGIN</h2>
-          <p class="muted">Sign in with the administrator account registered in Supabase.</p>
+          <p class="muted">Local administrator controls are available on this device.</p>
           <form id="login-form">
             <label>Email address<input type="email" id="login-email" autocomplete="username" required></label>
             <label>Password<input type="password" id="login-password" autocomplete="current-password" required></label>
@@ -74,12 +74,11 @@
         <div class="panel-card"><div class="stat-line"><span>Last 30 days · weekly average</span><strong id="recent-week">0</strong></div><div class="stat-line"><span>Last 90 days · monthly average</span><strong id="recent-month">0</strong></div><div class="stat-line"><span>Busiest week</span><strong id="busiest-week">—</strong></div><div class="stat-line"><span>Busiest month</span><strong id="busiest-month">—</strong></div></div>
       </section>
       <section class="admin-panel" id="panel-devices"><div class="panel-card"><div class="panel-title"><div><p class="eyebrow">PUSH NOTIFICATIONS</p><h2>Registered devices</h2></div></div><p class="muted">Automatic device registration and real push subscriptions will be connected in the backend build. This preview can only demonstrate browser permission on this device.</p><button class="outline-button" id="notification-test"><i class="fa-solid fa-bell" aria-hidden="true"></i> Test browser notification</button><p class="muted" id="notification-feedback" aria-live="polite"></p></div></section>
-      <div class="prototype-note"><strong>Connected build</strong><span>Requests and rules are stored centrally. Admin access requires your Supabase account. Remote push notifications are not connected yet.</span></div>
+      <div class="prototype-note"><strong>Local-only build</strong><span>Requests and rules are saved in this browser. Data is not shared with other devices or browsers.</span></div>
       </div>
     </section>
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./app.js"></script>
 </body>
 </html>
