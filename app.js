@@ -75,13 +75,14 @@ function isOpen() {
   return opening < closing ? now >= opening && now < closing : now >= opening || now < closing;
 }
 
-function todayRequests() {
+function allTodayRequests() {
   const today = ukDate();
+  return data.requests.filter(request => ukDate(new Date(request.createdAt)) === today);
+}
+
+function todayRequests() {
   const resetAt = Date.parse(data.settings.allowanceResetAt || 0) || 0;
-  return data.requests.filter(request =>
-    ukDate(new Date(request.createdAt)) === today &&
-    Date.parse(request.createdAt) >= resetAt
-  );
+  return allTodayRequests().filter(request => Date.parse(request.createdAt) >= resetAt);
 }
 
 function latestRequest() {
@@ -404,9 +405,10 @@ function renderStatistics() {
 
 function renderAdmin() {
   const today = todayRequests();
+  const acceptedToday = allTodayRequests();
   const pending = data.requests.filter(request => request.status === "Pending");
   const fulfilled = data.requests.filter(request => request.status === "Fulfilled");
-  $("metric-today").textContent = today.length;
+  $("metric-today").textContent = acceptedToday.length;
   $("metric-pending").textContent = pending.length;
   $("metric-fulfilled").textContent = fulfilled.length;
   $("admin-availability").textContent = !data.settings.enabled ? "Disabled" :
