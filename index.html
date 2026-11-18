@@ -62,7 +62,7 @@
       <section class="admin-panel" id="panel-settings">
         <form id="settings-form" class="panel-card settings-form"><div class="panel-title"><div><p class="eyebrow">REQUEST WINDOW</p><h2>Opening hours</h2></div></div><p class="muted settings-help">Set the exact times when tea requests are allowed. Changes apply across every connected device after you save the rules.</p>
           <div class="field-row"><label>Opens at<input type="time" id="open-time" value="07:00" required></label><label>Closes at<input type="time" id="close-time" value="22:00" required></label></div>
-          <div class="field-row"><label>Cooldown (minutes)<input type="number" id="cooldown-setting" min="1" max="1440" value="60" required></label><label>Daily request limit<input type="number" id="limit-setting" min="1" max="100" value="4" required></label></div>
+          <div class="field-row"><label>Cooldown (seconds)<input type="number" id="cooldown-setting" min="1" max="86400" value="15" required></label><label>Daily request limit<input type="number" id="limit-setting" min="1" max="100" value="4" required></label></div>
           <div class="sound-setting"><label><input type="checkbox" id="sound-enabled"> Enable system sound effects</label><small>Sound plays after interacting with this page.</small></div><button class="solid-button" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save rules</button><p class="muted" id="settings-feedback" aria-live="polite"></p>
         </form>
         
