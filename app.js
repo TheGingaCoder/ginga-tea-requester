@@ -172,7 +172,9 @@ function requestFromRow(row) {
     id: row.id,
     createdAt: row.created_at,
     status: row.status,
-    fulfilledAt: row.fulfilled_at
+    fulfilledAt: row.fulfilled_at,
+    reminderSentAt: row.reminder_sent_at,
+    rating: row.tea_rating == null ? null : Number(row.tea_rating)
   };
 }
 
@@ -354,6 +356,33 @@ function render() {
     $("current-request-time").textContent = "Accepted " + dateLabel(latest.createdAt);
     $("current-request-note").textContent = latest.status === "Fulfilled" ? "A job well steeped." : "The tea is officially owed.";
   }
+
+  const pingButton = $("ping-ginger-button");
+  const pendingAge = latest && latest.status === "Pending" ? Date.now() - Date.parse(latest.createdAt) : 0;
+  const pingReady = Boolean(latest && latest.status === "Pending" && pendingAge >= 120000 && !latest.reminderSentAt);
+  if (pingButton) {
+    pingButton.hidden = !(latest && latest.status === "Pending");
+    pingButton.disabled = !pingReady;
+    pingButton.classList.toggle("ping-ready", pingReady);
+    pingButton.textContent = latest && latest.reminderSentAt
+      ? "GINGER HAS BEEN PINGED"
+      : pingReady ? "PING THE GINGER" : "PING THE GINGER · " + duration(Math.max(0, 120000 - pendingAge));
+  }
+
+  const unrated = data.requests.slice().reverse().find(request => request.status === "Fulfilled" && request.rating == null);
+  const ratingPanel = $("tea-rating-panel");
+  if (ratingPanel) {
+    ratingPanel.hidden = !unrated;
+    if (unrated) {
+      $("tea-rating-title").textContent = "How was the tea?";
+      $("tea-rating-detail").textContent = "Rate the quality of this cuppa. This is only used for statistics.";
+      $("tea-rating-stars").innerHTML = [1,2,3,4,5].map(value =>
+        '<button type="button" class="rating-star" data-rating="' + value +
+        '" data-rating-request="' + escapeHtml(unrated.id) + '" aria-label="Rate ' + value +
+        ' out of 5 stars"><i class="fa-solid fa-star" aria-hidden="true"></i></button>'
+      ).join("");
+    }
+  }
   if (admin) renderAdmin();
 }
 
@@ -394,12 +423,57 @@ async function submitRequest() {
   }
 }
 
+async function pingTheGinger() {
+  const latest = latestRequest();
+  if (!latest || latest.status !== "Pending") return;
+  if (Date.now() - Date.parse(latest.createdAt) < 120000) {
+    toast("THE GINGER IS NOT ELIGIBLE FOR PINGING YET.");
+    return;
+  }
+  if (latest.reminderSentAt) {
+    toast("THE GINGER HAS ALREADY BEEN PINGED.");
+    return;
+  }
+  const button = $("ping-ginger-button");
+  button.disabled = true;
+  try {
+    const {data: result, error} = await supabaseClient.functions.invoke("send-tea-notification", {
+      body: {requestId: latest.id, reminder: true}
+    });
+    if (error) throw error;
+    await refreshRemoteData();
+    if (result && result.sent > 0) toast("REMINDER DISPATCHED. THE GINGER HAS BEEN SUMMONED.");
+    else toast("REMINDER WAS NOT SENT. CHECK THE REGISTERED DEVICES.");
+  } catch (error) {
+    button.disabled = false;
+    toast(error.message || "Could not send the reminder.");
+  } finally {
+    render();
+  }
+}
+
+async function submitTeaRating(requestId, rating) {
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) return;
+  const buttons = document.querySelectorAll("[data-rating]");
+  buttons.forEach(button => button.disabled = true);
+  try {
+    const {error} = await supabaseClient.rpc("submit_tea_rating", {p_request_id: requestId, p_rating: rating});
+    if (error) throw error;
+    await refreshRemoteData();
+    toast("RATING RECORDED. THANK YOU FOR YOUR FEEDBACK.");
+  } catch (error) {
+    buttons.forEach(button => button.disabled = false);
+    toast(error.message || "Could not save the tea rating.");
+  }
+}
+
 function requestRow(request) {
   return '<div class="request-row"><div><strong><i class="fa-solid fa-mug-hot" aria-hidden="true"></i> Tea request · ' +
     escapeHtml(request.status) + '</strong><small>' + dateLabel(request.createdAt) + '</small></div>' +
     (request.status === "Pending"
       ? '<button class="fulfil-button" data-fulfil="' + escapeHtml(request.id) + '"><i class="fa-solid fa-check" aria-hidden="true"></i> Fulfil request</button>'
-      : '<span class="status-pill fulfilled"><i class="fa-solid fa-check" aria-hidden="true"></i> Fulfilled</span>') +
+      : '<span class="status-pill fulfilled"><i class="fa-solid fa-check" aria-hidden="true"></i> Fulfilled' +
+        (request.rating == null ? '' : ' · ' + request.rating + '/5 ★') + '</span>') +
     '</div>';
 }
 
@@ -415,6 +489,10 @@ function renderStatistics() {
   $("stat-total").textContent = total;
   $("stat-week").textContent = (total / (elapsed / 7)).toFixed(1);
   $("stat-month").textContent = (total / (elapsed / 30.4375)).toFixed(1);
+  const ratedRequests = data.requests.filter(request => request.rating != null);
+  const averageRating = ratedRequests.length ? ratedRequests.reduce((sum, request) => sum + request.rating, 0) / ratedRequests.length : null;
+  $("tea-rating-average").textContent = averageRating == null ? "—" : averageRating.toFixed(1) + " / 5";
+  $("tea-rating-count").textContent = ratedRequests.length + " rating" + (ratedRequests.length === 1 ? "" : "s");
   $("recent-week").textContent = (countRecent(30) / 30 * 7).toFixed(1);
   $("recent-month").textContent = (countRecent(90) / 90 * 30.4375).toFixed(1);
 
@@ -730,6 +808,7 @@ async function toggleSystem() {
 }
 
 $("request-button").addEventListener("click", submitRequest);
+$("ping-ginger-button").addEventListener("click", pingTheGinger);
 $("admin-open").addEventListener("click", openAdmin);
 $("admin-back").addEventListener("click", closeAdmin);
 $("admin-back-login").addEventListener("click", closeAdmin);
@@ -754,8 +833,10 @@ $("sound-enabled").addEventListener("change", () => {
 document.querySelectorAll(".admin-tab").forEach(button =>
   button.addEventListener("click", () => switchPanel(button.dataset.panel)));
 document.addEventListener("click", event => {
-  const button = event.target.closest("[data-fulfil]");
-  if (button) fulfil(button.dataset.fulfil);
+  const fulfilButton = event.target.closest("[data-fulfil]");
+  if (fulfilButton) fulfil(fulfilButton.dataset.fulfil);
+  const ratingButton = event.target.closest("[data-rating]");
+  if (ratingButton) submitTeaRating(ratingButton.dataset.ratingRequest, Number(ratingButton.dataset.rating));
 });
 $("notification-register").addEventListener("click", registerPushDevice);
 $("notification-unregister").addEventListener("click", unregisterPushDevice);
