@@ -340,7 +340,7 @@
 .cooldown-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;color:#91a0b4;font-size:12px}
 .cooldown-header strong{color:#91a0b4;font-size:12px;font-weight:600;text-align:right}
 .cooldown-track{height:14px;border-radius:20px;background:#26374b;border:1px solid #3b526e;overflow:hidden}
-.cooldown-fill{height:100%;width:0;background:repeating-linear-gradient(135deg,#ff3c12 0 8px,#ff7a13 8px 15px);transition:width .35s linear}
+.cooldown-fill{height:100%;width:0;position:relative;background:linear-gradient(90deg,#ff3c12,#ff7a13);transition:width .35s linear;overflow:hidden}
 .cooldown-detail{display:none}
 .contract-main-card{max-width:100%;margin:0 auto 16px;padding:26px 20px 28px;border:3px solid #34465d;border-radius:17px;background:#101722;box-shadow:none}
 .contract-main-card:before{display:none}
