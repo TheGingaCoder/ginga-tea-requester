@@ -31,7 +31,14 @@
         <div class="tea-indicators" id="tea-indicators" role="img" aria-label="Four tea requests remaining"></div>
       </section>
       <section class="current-request" id="current-request" hidden><div class="section-heading"><div><p class="eyebrow">CONTRACT MONITOR</p><h2>Active request</h2></div><span class="status-pill pending" id="request-status">Pending</span></div><div class="current-request-body"><div class="mini-cup"><i class="fa-solid fa-mug-hot" aria-hidden="true"></i></div><div><strong id="current-request-title">Tea requested!</strong><p id="current-request-time">Your request has been accepted.</p><small id="current-request-note">The tea is officially owed.</small></div></div><button class="ping-ginger-button" id="ping-ginger-button" type="button" hidden disabled>PING THE GINGER · 2m 00s</button></section>
-      <section class="tea-rating-panel" id="tea-rating-panel" hidden><p class="eyebrow">QUALITY CONTROL</p><h2 id="tea-rating-title">How was the tea?</h2><p id="tea-rating-detail">Rate the quality of this cuppa. This is only used for statistics.</p><div class="tea-rating-stars" id="tea-rating-stars" aria-label="Tea quality rating"></div></section>
+      <div class="tea-rating-backdrop" id="tea-rating-panel" hidden>
+        <section class="tea-rating-modal" role="dialog" aria-modal="true" aria-labelledby="tea-rating-title" aria-describedby="tea-rating-detail">
+          <p class="eyebrow">QUALITY CONTROL</p>
+          <h2 id="tea-rating-title">How was the tea?</h2>
+          <p id="tea-rating-detail">Rate the quality of this cuppa. This is only used for statistics.</p>
+          <div class="tea-rating-stars" id="tea-rating-stars" aria-label="Tea quality rating"></div>
+        </section>
+      </div>
       <footer class="page-footer"><span>DOMESTIC SYSTEMS DIVISION // NO APPEALS</span><span>GINGA TEA REQUESTER <b>•</b> EST. 2026</span><span id="availability-label" hidden>Checking availability</span><button class="icon-button footer-admin-button" id="admin-open" type="button" aria-label="Open admin panel" title="Admin"><i class="fa-solid fa-sliders" aria-hidden="true"></i></button></footer>
     </section>
 
