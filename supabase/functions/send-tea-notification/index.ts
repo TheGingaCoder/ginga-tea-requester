@@ -1,10 +1,11 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import webpush from "npm:web-push@3.6.7";
+import * as webpush from "jsr:@negrel/webpush@0.5.0";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://thegingacoder.github.io",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Vary": "Origin",
 };
 
 Deno.serve(async (req: Request) => {
@@ -20,10 +21,9 @@ Deno.serve(async (req: Request) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const vapidPublic = Deno.env.get("VAPID_PUBLIC_KEY")!;
-    const vapidPrivate = Deno.env.get("VAPID_PRIVATE_KEY")!;
+    const vapidKeysJson = Deno.env.get("VAPID_KEYS_JSON")!;
     const vapidSubject = Deno.env.get("VAPID_SUBJECT") || "mailto:gingacoder@gmail.com";
-    if (!supabaseUrl || !serviceKey || !vapidPublic || !vapidPrivate) {
+    if (!supabaseUrl || !serviceKey || !vapidKeysJson) {
       throw new Error("Push notification server secrets are not configured.");
     }
 
@@ -42,8 +42,15 @@ Deno.serve(async (req: Request) => {
     const {data: subscriptions, error: subscriptionsError} = await supabase
       .from("push_subscriptions").select("id, endpoint, p256dh, auth");
     if (subscriptionsError) throw subscriptionsError;
+    if (!subscriptions || subscriptions.length === 0) {
+      return Response.json({sent: 0, message: "No devices are registered."}, {headers: corsHeaders});
+    }
 
-    webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
+    const vapidKeys = await webpush.importVapidKeys(JSON.parse(vapidKeysJson));
+    const applicationServer = await webpush.ApplicationServer.new({
+      contactInformation: vapidSubject,
+      vapidKeys,
+    });
     const payload = JSON.stringify({
       title: "Ginga Tea Requester",
       body: "A new tea request has arrived. The kettle awaits.",
@@ -51,20 +58,24 @@ Deno.serve(async (req: Request) => {
     });
     let sent = 0;
     let removed = 0;
-    for (const subscription of subscriptions || []) {
+    for (const row of subscriptions) {
+      const subscription = {
+        endpoint: row.endpoint,
+        keys: {p256dh: row.p256dh, auth: row.auth}
+      };
       try {
-        await webpush.sendNotification({
-          endpoint: subscription.endpoint,
-          keys: {p256dh: subscription.p256dh, auth: subscription.auth}
-        }, payload);
+        await applicationServer.subscribe(subscription).pushTextMessage(payload, {
+          ttl: 3600,
+          urgency: webpush.Urgency.High,
+          topic: "tea-request"
+        });
         sent++;
       } catch (error) {
-        const statusCode = error && error.statusCode;
-        if (statusCode === 404 || statusCode === 410) {
-          await supabase.from("push_subscriptions").delete().eq("id", subscription.id);
+        if (error && typeof error.isGone === "function" && error.isGone()) {
+          await supabase.from("push_subscriptions").delete().eq("id", row.id);
           removed++;
         } else {
-          console.error("Push delivery failed:", statusCode || error);
+          console.error("Push delivery failed:", String(error));
         }
       }
     }
