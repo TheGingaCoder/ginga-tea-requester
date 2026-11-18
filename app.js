@@ -1,4 +1,3 @@
-const STORAGE_KEY = "ginga-tea-requester:data";
 const PREF_KEY = "ginga-tea-requester:preferences";
 const $ = id => document.getElementById(id);
 const SUPABASE_URL = "https://goqdqneuwaxoyxyopfdl.supabase.co";
