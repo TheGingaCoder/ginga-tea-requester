@@ -29,6 +29,11 @@ alter table public.tea_settings enable row level security;
 alter table public.tea_admins enable row level security;
 alter table public.tea_requests enable row level security;
 
+grant select on public.tea_settings to anon, authenticated;
+grant update on public.tea_settings to authenticated;
+grant select on public.tea_admins to authenticated;
+grant select on public.tea_requests to anon, authenticated;
+
 drop policy if exists "Public can read tea settings" on public.tea_settings;
 create policy "Public can read tea settings"
   on public.tea_settings for select to anon, authenticated using (true);
