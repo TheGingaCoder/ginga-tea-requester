@@ -364,10 +364,14 @@ async function submitRequest() {
     const {data: createdRequest, error} = await supabaseClient.rpc("submit_tea_request");
     if (error) throw error;
     if (createdRequest && createdRequest.id) {
-      const {error: pushError} = await supabaseClient.functions.invoke("send-tea-notification", {
-        body: {requestId: createdRequest.id}
-      });
-      if (pushError) console.warn("Push notification dispatch failed:", pushError);
+      try {
+        const {error: pushError} = await supabaseClient.functions.invoke("send-tea-notification", {
+          body: {requestId: createdRequest.id}
+        });
+        if (pushError) console.warn("Push notification dispatch failed:", pushError);
+      } catch (pushError) {
+        console.warn("Push notification dispatch failed:", pushError);
+      }
     }
     await refreshRemoteData();
     setPersonality("accepted");
