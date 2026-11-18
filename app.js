@@ -460,10 +460,14 @@ async function submitTeaRating(requestId, rating) {
   const buttons = document.querySelectorAll("[data-rating]");
   buttons.forEach(button => button.disabled = true);
   try {
-    const {error} = await supabaseClient.rpc("submit_tea_rating", {p_request_id: requestId, p_rating: rating});
+    const {data: ratedRequest, error} = await supabaseClient.rpc("submit_tea_rating", {p_request_id: requestId, p_rating: rating});
     if (error) throw error;
-    await refreshRemoteData();
+    if (!ratedRequest) throw new Error("The rating was saved, but the updated request was not returned.");
+    const requestIndex = data.requests.findIndex(request => request.id === requestId);
+    if (requestIndex !== -1) data.requests[requestIndex] = requestFromRow(ratedRequest);
+    render();
     toast("RATING RECORDED. THANK YOU FOR YOUR FEEDBACK.");
+    refreshRemoteData().catch(error => console.warn("Could not refresh after rating:", error));
   } catch (error) {
     buttons.forEach(button => button.disabled = false);
     toast(error.message || "Could not save the tea rating.");
