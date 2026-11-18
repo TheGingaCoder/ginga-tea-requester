@@ -94,9 +94,8 @@ function cooldownOrigin(request) {
 
 function cooldownMs() {
   const request = latestRequest();
-  if (!request) return 0;
-  if (request.status === "Pending") return data.settings.cooldown * 1000;
-  return Math.max(0, cooldownOrigin(request) + data.settings.cooldown * 60000 - Date.now());
+  if (!request || request.status === "Pending") return 0;
+  return Math.max(0, cooldownOrigin(request) + data.settings.cooldown * 1000 - Date.now());
 }
 
 function canRequest() {
@@ -270,14 +269,16 @@ function render() {
 
   const timer = state === "limit" ? untilMidnightMs() : state === "closed" ? untilOpeningMs() : cooldown;
   $("cooldown-value").textContent = state === "disabled" ? "SYSTEM OFFLINE" :
-    state === "ready" ? "Available now" : clockText(timer) + " Remaining";
+    state === "ready" ? "Available now" :
+    state === "accepted" ? "AWAITING FULFILMENT" : clockText(timer) + " Remaining";
   $("cooldown-detail").textContent = state === "limit" ? "Time until the daily allowance resets" :
     state === "closed" ? "Time until tea service reopens" :
+    state === "accepted" ? "Cooldown starts once the tea request is fulfilled" :
     cooldown > 0 ? "Time remaining before the next request" : "No cooldown active";
 
-  const progressStates = ["cooldown", "accepted", "fulfilled"];
+  const progressStates = ["cooldown", "fulfilled"];
   const percentage = progressStates.includes(state)
-    ? Math.max(0, Math.min(100, cooldown / Math.max(1, data.settings.cooldown * 60000) * 100)) : 0;
+    ? Math.max(0, Math.min(100, cooldown / Math.max(1, data.settings.cooldown * 1000) * 100)) : 0;
   $("cooldown-progress").style.width = percentage + "%";
   $("cooldown-progress").parentElement.setAttribute("aria-valuenow", String(Math.round(percentage)));
 
