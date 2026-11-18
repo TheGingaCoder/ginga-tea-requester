@@ -1,8 +1,8 @@
 const PREF_KEY = "ginga-tea-requester:preferences";
 const $ = id => document.getElementById(id);
-const SUPABASE_URL = "https://goqdqneuwaxoyxyopfdl.supabase.co";
+const SUPABASE_URL = "https://goqdqneuwaxoyxyopfdl.supabaseClient.co";
 const SUPABASE_KEY = "sb_publishable_ri3ecPVbIE9gsrvggZm-pQ_DeKQ1mUZ";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabaseClient.createClient(SUPABASE_URL, SUPABASE_KEY);
 let realtimeChannel = null;
 let currentUser = null;
 
@@ -175,8 +175,8 @@ function requestFromRow(row) {
 
 async function refreshRemoteData() {
   const [settingsResult, requestsResult] = await Promise.all([
-    supabase.from("tea_settings").select("*").eq("id", 1).single(),
-    supabase.from("tea_requests").select("*").order("created_at", {ascending: true})
+    supabaseClient.from("tea_settings").select("*").eq("id", 1).single(),
+    supabaseClient.from("tea_requests").select("*").order("created_at", {ascending: true})
   ]);
   if (settingsResult.error) throw settingsResult.error;
   if (requestsResult.error) throw requestsResult.error;
@@ -198,15 +198,15 @@ async function loadData() {
 }
 
 function subscribeToRemoteChanges() {
-  if (realtimeChannel) supabase.removeChannel(realtimeChannel);
-  realtimeChannel = supabase.channel("ginga-tea-live")
+  if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
+  realtimeChannel = supabaseClient.channel("ginga-tea-live")
     .on("postgres_changes", {event: "*", schema: "public", table: "tea_settings"}, refreshRemoteData)
     .on("postgres_changes", {event: "*", schema: "public", table: "tea_requests"}, refreshRemoteData)
     .subscribe();
 }
 
 async function saveSettingsRow(patch) {
-  const {error} = await supabase.from("tea_settings").update(patch).eq("id", 1);
+  const {error} = await supabaseClient.from("tea_settings").update(patch).eq("id", 1);
   if (error) throw error;
   await refreshRemoteData();
 }
@@ -358,7 +358,7 @@ async function submitRequest() {
   const button = $("request-button");
   button.disabled = true;
   try {
-    const {error} = await supabase.rpc("submit_tea_request");
+    const {error} = await supabaseClient.rpc("submit_tea_request");
     if (error) throw error;
     await refreshRemoteData();
     setPersonality("accepted");
@@ -483,7 +483,7 @@ function renderAdmin() {
 
 async function fulfil(id) {
   try {
-    const {error} = await supabase.rpc("fulfil_tea_request", {p_request_id: id});
+    const {error} = await supabaseClient.rpc("fulfil_tea_request", {p_request_id: id});
     if (error) throw error;
     await refreshRemoteData();
     setPersonality("fulfilled");
@@ -500,15 +500,15 @@ async function openAdmin() {
   $("admin-console").hidden = true;
   $("auth-gate").hidden = false;
   $("login-feedback").textContent = "";
-  const {data: sessionData} = await supabase.auth.getSession();
+  const {data: sessionData} = await supabaseClient.auth.getSession();
   if (sessionData.session) await verifyAdmin(sessionData.session.user);
 }
 
 async function verifyAdmin(user) {
-  const {data: adminRow, error} = await supabase.from("tea_admins")
+  const {data: adminRow, error} = await supabaseClient.from("tea_admins")
     .select("user_id").eq("user_id", user.id).maybeSingle();
   if (error || !adminRow) {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     currentUser = null;
     admin = false;
     $("login-feedback").textContent = "This account does not have administrator access.";
@@ -535,7 +535,7 @@ async function loginAdmin(event) {
   event.preventDefault();
   const feedback = $("login-feedback");
   feedback.textContent = "Signing in...";
-  const {data: authData, error} = await supabase.auth.signInWithPassword({
+  const {data: authData, error} = await supabaseClient.auth.signInWithPassword({
     email: $("login-email").value.trim(),
     password: $("login-password").value
   });
@@ -548,7 +548,7 @@ async function loginAdmin(event) {
 }
 
 async function logoutAdmin() {
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   currentUser = null;
   closeAdmin();
   toast("ADMINISTRATOR SIGNED OUT.");
@@ -673,7 +673,7 @@ async function init() {
     await loadData();
     subscribeToRemoteChanges();
     setInterval(render, 1000);
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabaseClient.auth.onAuthStateChange((_event, session) => {
       if (!session && admin) closeAdmin();
     });
   } catch (error) {
