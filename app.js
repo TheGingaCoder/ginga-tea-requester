@@ -4,7 +4,7 @@ const PREF_KEY = "ginga-tea-requester:preferences";
 const $ = id => document.getElementById(id);
 const SUPABASE_URL = "https://goqdqneuwaxoyxyopfdl.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ri3ecPVbIE9gsrvggZm-pQ_DeKQ1mUZ";
-const VAPID_PUBLIC_KEY = "PASTE_YOUR_VAPID_PUBLIC_KEY_HERE";
+const VAPID_PUBLIC_KEY = "BMjEqHACpcjfvEMonqodi8dc4d09E3eTogw2EFGY5a8d-v07baJXWgug5R4WdqgzOHd6ffxPEt7tUAqZLf3JcOQ";
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 let realtimeChannel = null;
 let currentUser = null;
