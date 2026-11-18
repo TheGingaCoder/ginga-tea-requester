@@ -14,7 +14,7 @@ create table if not exists public.push_subscriptions (
 );
 
 alter table public.push_subscriptions enable row level security;
-grant select, insert, delete on public.push_subscriptions to authenticated;
+grant select, insert, update, delete on public.push_subscriptions to authenticated;
 
 drop policy if exists "Admins can read their push subscriptions" on public.push_subscriptions;
 create policy "Admins can read their push subscriptions"
@@ -34,5 +34,14 @@ drop policy if exists "Admins can remove their push subscriptions" on public.pus
 create policy "Admins can remove their push subscriptions"
   on public.push_subscriptions for delete to authenticated
   using (user_id = (select auth.uid()) and exists (
+    select 1 from public.tea_admins a where a.user_id = (select auth.uid())
+  ));
+drop policy if exists "Admins can update their push subscriptions" on public.push_subscriptions;
+create policy "Admins can update their push subscriptions"
+  on public.push_subscriptions for update to authenticated
+  using (user_id = (select auth.uid()) and exists (
+    select 1 from public.tea_admins a where a.user_id = (select auth.uid())
+  ))
+  with check (user_id = (select auth.uid()) and exists (
     select 1 from public.tea_admins a where a.user_id = (select auth.uid())
   ));
