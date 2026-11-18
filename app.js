@@ -77,7 +77,11 @@ function isOpen() {
 
 function todayRequests() {
   const today = ukDate();
-  return data.requests.filter(request => ukDate(new Date(request.createdAt)) === today);
+  const resetAt = Date.parse(data.settings.allowanceResetAt || 0) || 0;
+  return data.requests.filter(request =>
+    ukDate(new Date(request.createdAt)) === today &&
+    Date.parse(request.createdAt) >= resetAt
+  );
 }
 
 function latestRequest() {
@@ -415,8 +419,11 @@ function renderAdmin() {
   $("hours-override-toggle").textContent = data.settings.hoursOverride ? "Turn override off" : "Override opening hours";
   $("hours-override-toggle").classList.toggle("override-active", data.settings.hoursOverride);
   $("hours-override-detail").textContent = data.settings.hoursOverride
-    ? "ACTIVE — requests can be made at any time, subject to the other rules."
+    ? "ACTIVE — opening hours are bypassed. Daily allowance, cooldown and the master switch still apply."
     : "Allow requests outside " + data.settings.open + "–" + data.settings.close + " UK time.";
+  $("reset-allowance-detail").textContent =
+    today.length + " of " + data.settings.limit + " requests counted today. Resetting restores " +
+    data.settings.limit + " available requests without deleting request history.";
   $("pending-count-pill").textContent = pending.length + " PENDING";
 
   if (!settingsDirty) {
@@ -504,7 +511,16 @@ function toggleHoursOverride() {
   data.settings.hoursOverride = !data.settings.hoursOverride;
   saveData();
   render();
-  toast(data.settings.hoursOverride ? "OPENING-HOURS OVERRIDE ENABLED." : "OPENING-HOURS OVERRIDE DISABLED.");
+  toast(data.settings.hoursOverride
+    ? "OPENING-HOURS BYPASSED. OTHER REQUEST RULES STILL APPLY."
+    : "NORMAL OPENING HOURS RESTORED.");
+}
+
+function resetAllowance() {
+  data.settings.allowanceResetAt = new Date().toISOString();
+  saveData();
+  render();
+  toast("DAILY ALLOWANCE RESTORED TO " + data.settings.limit + ". REQUEST HISTORY PRESERVED.");
 }
 
 function toggleSystem() {
@@ -524,6 +540,7 @@ $("admin-back-login").addEventListener("click", closeAdmin);
 $("admin-logout").addEventListener("click", closeAdmin);
 $("system-toggle").addEventListener("click", toggleSystem);
 $("hours-override-toggle").addEventListener("click", toggleHoursOverride);
+$("reset-allowance-button").addEventListener("click", resetAllowance);
 $("settings-form").addEventListener("input", () => {
   settingsDirty = true;
   $("settings-feedback").textContent = "Unsaved changes.";
