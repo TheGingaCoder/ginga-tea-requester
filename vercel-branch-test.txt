@@ -1,0 +1,3 @@
+Temporary deployment detection test.
+
+This file was added to tea-requester-build to test whether Vercel detects commits pushed to this branch.
