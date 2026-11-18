@@ -5,7 +5,8 @@ const $ = id => document.getElementById(id);
 const DEFAULT_SETTINGS = {
   open: "07:00",
   close: "22:00",
-  cooldown: 60,
+  cooldown: 15,
+  cooldownUnit: "seconds",
   limit: 4,
   enabled: true,
   hoursOverride: false,
@@ -94,7 +95,7 @@ function cooldownOrigin(request) {
 function cooldownMs() {
   const request = latestRequest();
   if (!request) return 0;
-  if (request.status === "Pending") return data.settings.cooldown * 60000;
+  if (request.status === "Pending") return data.settings.cooldown * 1000;
   return Math.max(0, cooldownOrigin(request) + data.settings.cooldown * 60000 - Date.now());
 }
 
@@ -146,6 +147,10 @@ function loadData() {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
     if (saved && typeof saved === "object") {
       data.settings = {...DEFAULT_SETTINGS, ...(saved.settings || {})};
+      if (saved.settings && saved.settings.cooldownUnit !== "seconds") {
+        data.settings.cooldown = 15;
+        data.settings.cooldownUnit = "seconds";
+      }
       data.requests = Array.isArray(saved.requests) ? saved.requests : [];
     }
   } catch (error) {
@@ -475,7 +480,7 @@ function saveSettings(event) {
   const limit = Number($("limit-setting").value);
 
   if (!open || !close || open === close || !Number.isInteger(cooldown) ||
-      cooldown < 1 || cooldown > 1440 || !Number.isInteger(limit) || limit < 1 || limit > 100) {
+      cooldown < 1 || cooldown > 86400 || !Number.isInteger(limit) || limit < 1 || limit > 100) {
     $("settings-feedback").textContent = "Please enter valid hours, cooldown and daily limit.";
     return;
   }
@@ -483,6 +488,7 @@ function saveSettings(event) {
   data.settings.open = open;
   data.settings.close = close;
   data.settings.cooldown = cooldown;
+  data.settings.cooldownUnit = "seconds";
   data.settings.limit = limit;
   data.settings.sound = $("sound-enabled").checked;
   settingsDirty = false;
