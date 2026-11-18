@@ -1,3 +1,5 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
 const PREF_KEY = "ginga-tea-requester:preferences";
 const $ = id => document.getElementById(id);
 const SUPABASE_URL = "https://goqdqneuwaxoyxyopfdl.supabaseClient.co";
