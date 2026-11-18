@@ -4,6 +4,7 @@ const PREF_KEY = "ginga-tea-requester:preferences";
 const $ = id => document.getElementById(id);
 const SUPABASE_URL = "https://goqdqneuwaxoyxyopfdl.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ri3ecPVbIE9gsrvggZm-pQ_DeKQ1mUZ";
+const VAPID_PUBLIC_KEY = "PASTE_YOUR_VAPID_PUBLIC_KEY_HERE";
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 let realtimeChannel = null;
 let currentUser = null;
@@ -360,8 +361,14 @@ async function submitRequest() {
   const button = $("request-button");
   button.disabled = true;
   try {
-    const {error} = await supabaseClient.rpc("submit_tea_request");
+    const {data: createdRequest, error} = await supabaseClient.rpc("submit_tea_request");
     if (error) throw error;
+    if (createdRequest && createdRequest.id) {
+      const {error: pushError} = await supabaseClient.functions.invoke("send-tea-notification", {
+        body: {requestId: createdRequest.id}
+      });
+      if (pushError) console.warn("Push notification dispatch failed:", pushError);
+    }
     await refreshRemoteData();
     setPersonality("accepted");
     playActivation();
@@ -496,6 +503,100 @@ async function fulfil(id) {
   }
 }
 
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(character => character.charCodeAt(0)));
+}
+
+async function updatePushDeviceStatus() {
+  const status = $("notification-device-status");
+  if (!status) return;
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+    status.textContent = "Push notifications are not supported by this browser.";
+    return;
+  }
+  if (!currentUser) {
+    status.textContent = "Sign in as an administrator to register this device.";
+    return;
+  }
+  try {
+    const registration = await navigator.serviceWorker.getRegistration("./");
+    const subscription = registration && await registration.pushManager.getSubscription();
+    status.textContent = subscription
+      ? "This device is registered for tea request notifications."
+      : "This device is not registered yet.";
+  } catch (error) {
+    status.textContent = error.message || "Could not check this device.";
+  }
+}
+
+async function registerPushDevice() {
+  const status = $("notification-device-status");
+  const button = $("notification-register");
+  button.disabled = true;
+  try {
+    if (!currentUser || !admin) throw new Error("Sign in as an administrator first.");
+    if (VAPID_PUBLIC_KEY === "PASTE_YOUR_VAPID_PUBLIC_KEY_HERE") {
+      throw new Error("Push setup is not finished: add the VAPID public key to app.js first.");
+    }
+    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+      throw new Error("This browser does not support Web Push.");
+    }
+    const permission = Notification.permission === "granted"
+      ? "granted" : await Notification.requestPermission();
+    if (permission !== "granted") throw new Error("Notification permission was not granted.");
+    const registration = await navigator.serviceWorker.register("./sw.js");
+    await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    const json = subscription.toJSON();
+    const {error} = await supabaseClient.from("push_subscriptions").upsert({
+      user_id: currentUser.id,
+      endpoint: json.endpoint,
+      p256dh: json.keys.p256dh,
+      auth: json.keys.auth
+    }, {onConflict: "endpoint"});
+    if (error) throw error;
+    status.textContent = "Device registered. Tea requests will generate push notifications here.";
+    toast("DEVICE REGISTERED FOR PUSH NOTIFICATIONS.");
+  } catch (error) {
+    status.textContent = error.message || "Could not register this device.";
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function unregisterPushDevice() {
+  const status = $("notification-device-status");
+  const button = $("notification-unregister");
+  button.disabled = true;
+  try {
+    const registration = await navigator.serviceWorker.getRegistration("./");
+    const subscription = registration && await registration.pushManager.getSubscription();
+    if (!subscription) {
+      status.textContent = "This device is not currently registered.";
+      return;
+    }
+    const {error} = await supabaseClient.from("push_subscriptions")
+      .delete().eq("endpoint", subscription.endpoint);
+    if (error) throw error;
+    await subscription.unsubscribe();
+    status.textContent = "Push notifications disabled for this device.";
+    toast("DEVICE UNREGISTERED.");
+  } catch (error) {
+    status.textContent = error.message || "Could not unregister this device.";
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function openAdmin() {
   $("request-view").hidden = true;
   $("admin-view").hidden = false;
@@ -523,6 +624,7 @@ async function verifyAdmin(user) {
   $("auth-gate").hidden = true;
   $("admin-console").hidden = false;
   renderAdmin();
+  updatePushDeviceStatus();
   return true;
 }
 
@@ -651,23 +753,9 @@ document.addEventListener("click", event => {
   const button = event.target.closest("[data-fulfil]");
   if (button) fulfil(button.dataset.fulfil);
 });
-$("notification-test").addEventListener("click", async () => {
-  const feedback = $("notification-feedback");
-  if (!("Notification" in window)) {
-    feedback.textContent = "This browser does not support notifications.";
-    return;
-  }
-  let permission = Notification.permission;
-  if (permission === "default") permission = await Notification.requestPermission();
-  if (permission !== "granted") {
-    feedback.textContent = "Notification permission was not granted.";
-    return;
-  }
-  new Notification("Ginga Tea Requester", {
-    body: "Notification test successful. The tea system is listening."
-  });
-  feedback.textContent = "Local browser notification sent. Remote push delivery is not available in local-only mode.";
-});
+$("notification-register").addEventListener("click", registerPushDevice);
+$("notification-unregister").addEventListener("click", unregisterPushDevice);
+
 
 async function init() {
   setPersonality("ready");
