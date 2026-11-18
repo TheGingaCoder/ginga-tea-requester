@@ -14,11 +14,6 @@
 <body>
   <div class="scanlines" aria-hidden="true"></div><div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
   <main class="app-shell">
-    <header class="topbar">
-      <a class="brand" href="#"><span class="brand-mark">GT<span></span></span><span><strong>GINGA TEA</strong><small>REQUEST CONTROL // 01</small></span></a>
-      <div class="topbar-right"><span class="system-indicator"><i class="live-dot"></i><span id="availability-label">Checking availability</span></span><button class="icon-button" id="admin-open" aria-label="Open admin panel"><i class="fa-solid fa-sliders" aria-hidden="true"></i></button></div>
-    </header>
-
     <section class="request-view tea-contract-view" id="request-view">
       <div class="contract-brand"><img src="./TeaContract.svg" alt="The Tea Contract"><p id="contract-tagline">The Contract Is In Effect</p></div>
       <section class="cooldown-module" aria-label="Request cooldown">
@@ -34,7 +29,7 @@
         <div class="tea-indicators" id="tea-indicators" role="img" aria-label="Four tea requests remaining"></div>
       </section>
       <section class="current-request" id="current-request" hidden><div class="section-heading"><div><p class="eyebrow">CONTRACT MONITOR</p><h2>Active request</h2></div><span class="status-pill pending" id="request-status">Pending</span></div><div class="current-request-body"><div class="mini-cup"><i class="fa-solid fa-mug-hot" aria-hidden="true"></i></div><div><strong id="current-request-title">Tea requested!</strong><p id="current-request-time">Your request has been accepted.</p><small id="current-request-note">The tea is officially owed.</small></div></div></section>
-      <footer class="page-footer"><span>DOMESTIC SYSTEMS DIVISION // NO APPEALS</span><span>GINGA TEA REQUESTER <b>•</b> EST. 2026</span></footer>
+      <footer class="page-footer"><span>DOMESTIC SYSTEMS DIVISION // NO APPEALS</span><span>GINGA TEA REQUESTER <b>•</b> EST. 2026</span><button class="icon-button footer-admin-button" id="admin-open" type="button" aria-label="Open admin panel" title="Admin"><i class="fa-solid fa-sliders" aria-hidden="true"></i></button></footer>
     </section>
 
     <section class="admin-view" id="admin-view" hidden>
