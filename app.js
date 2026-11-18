@@ -369,18 +369,21 @@ function render() {
       : pingReady ? "PING THE GINGER" : "PING THE GINGER · " + duration(Math.max(0, 120000 - pendingAge));
   }
 
-  const unrated = data.requests.slice().reverse().find(request => request.status === "Fulfilled" && request.rating == null);
+  const ratingRequest = latest && latest.status === "Fulfilled" && latest.rating == null
+    ? latest : null;
   const ratingPanel = $("tea-rating-panel");
   if (ratingPanel) {
-    ratingPanel.hidden = !unrated;
-    if (unrated) {
+    ratingPanel.hidden = !ratingRequest;
+    if (ratingRequest) {
       $("tea-rating-title").textContent = "How was the tea?";
       $("tea-rating-detail").textContent = "Rate the quality of this cuppa. This is only used for statistics.";
       $("tea-rating-stars").innerHTML = [1,2,3,4,5].map(value =>
         '<button type="button" class="rating-star" data-rating="' + value +
-        '" data-rating-request="' + escapeHtml(unrated.id) + '" aria-label="Rate ' + value +
+        '" data-rating-request="' + escapeHtml(ratingRequest.id) + '" aria-label="Rate ' + value +
         ' out of 5 stars"><i class="fa-solid fa-star" aria-hidden="true"></i></button>'
       ).join("");
+    } else {
+      $("tea-rating-stars").innerHTML = "";
     }
   }
   if (admin) renderAdmin();
