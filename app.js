@@ -2,9 +2,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const PREF_KEY = "ginga-tea-requester:preferences";
 const $ = id => document.getElementById(id);
-const SUPABASE_URL = "https://goqdqneuwaxoyxyopfdl.supabaseClient.co";
+const SUPABASE_URL = "https://goqdqneuwaxoyxyopfdl.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ri3ecPVbIE9gsrvggZm-pQ_DeKQ1mUZ";
-const supabaseClient = window.supabaseClient.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 let realtimeChannel = null;
 let currentUser = null;
 
