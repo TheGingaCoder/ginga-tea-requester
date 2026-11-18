@@ -366,3 +366,25 @@
 
 /* Keep administrator access available without restoring the requester header */
 .page-footer .footer-admin-button{flex:0 0 32px;width:32px;height:32px;margin-left:auto;border-radius:8px}
+
+
+/* Smoothly transition the requester button into its disabled state after the press animation. */
+.contract-main-card .request-button {
+  transition:
+    transform .16s ease,
+    filter .7s cubic-bezier(.2,.7,.2,1),
+    box-shadow .7s ease;
+}
+.contract-main-card .request-button:disabled {
+  filter: grayscale(1) brightness(.68);
+  transition:
+    transform .16s ease,
+    filter .7s cubic-bezier(.2,.7,.2,1),
+    box-shadow .7s ease;
+}
+@media(prefers-reduced-motion:reduce) {
+  .contract-main-card .request-button,
+  .contract-main-card .request-button:disabled {
+    transition: none;
+  }
+}
