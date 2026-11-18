@@ -237,8 +237,8 @@ function render() {
 
   const state = !data.settings.enabled ? "disabled" :
     !open ? "closed" :
-    remaining === 0 ? "limit" :
     pending ? "accepted" :
+    remaining === 0 ? "limit" :
     fulfilled ? "fulfilled" :
     cooldown > 0 ? "cooldown" : "ready";
 
