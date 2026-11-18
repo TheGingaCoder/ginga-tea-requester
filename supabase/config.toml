@@ -1,0 +1,2 @@
+[functions.send-tea-notification]
+verify_jwt = false
