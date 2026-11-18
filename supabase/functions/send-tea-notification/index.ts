@@ -15,6 +15,7 @@ Deno.serve(async (req: Request) => {
   try {
     const body = await req.json();
     const requestId = body && body.requestId;
+    const isReminder = body && body.reminder === true;
     if (typeof requestId !== "string" || !/^[0-9a-f-]{36}$/i.test(requestId)) {
       return Response.json({error: "A valid requestId is required."}, {status: 400, headers: corsHeaders});
     }
@@ -28,14 +29,18 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabase = createClient(supabaseUrl, serviceKey);
-    const {data: claimed, error: claimError} = await supabase
+    const claimQuery = supabase
       .from("tea_requests")
-      .update({notification_sent_at: new Date().toISOString()})
+      .update(isReminder ? {reminder_sent_at: new Date().toISOString()} : {notification_sent_at: new Date().toISOString()})
       .eq("id", requestId)
       .eq("status", "Pending")
-      .is("notification_sent_at", null)
-      .select("id")
-      .maybeSingle();
+      .select("id");
+    if (isReminder) {
+      claimQuery.lte("created_at", new Date(Date.now() - 120000).toISOString()).is("reminder_sent_at", null);
+    } else {
+      claimQuery.is("notification_sent_at", null);
+    }
+    const {data: claimed, error: claimError} = await claimQuery.maybeSingle();
     if (claimError) throw claimError;
     if (!claimed) return Response.json({sent: 0, skipped: true}, {headers: corsHeaders});
 
@@ -52,8 +57,8 @@ Deno.serve(async (req: Request) => {
       vapidKeys,
     });
     const payload = JSON.stringify({
-      title: "Ginga Tea Requester",
-      body: "A new tea request has arrived. The kettle awaits.",
+      title: isReminder ? "Ginga Tea Requester · Reminder" : "Ginga Tea Requester",
+      body: isReminder ? "A tea request is still pending. The Ginger has been pinged." : "A new tea request has arrived. The kettle awaits.",
       url: "./?view=admin"
     });
     let sent = 0;
