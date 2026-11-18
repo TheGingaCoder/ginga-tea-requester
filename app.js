@@ -1,6 +1,11 @@
 const STORAGE_KEY = "ginga-tea-requester:data";
 const PREF_KEY = "ginga-tea-requester:preferences";
 const $ = id => document.getElementById(id);
+const SUPABASE_URL = "https://goqdqneuwaxoyxyopfdl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ri3ecPVbIE9gsrvggZm-pQ_DeKQ1mUZ";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let realtimeChannel = null;
+let currentUser = null;
 
 const DEFAULT_SETTINGS = {
   open: "07:00",
@@ -142,24 +147,47 @@ function escapeHtml(value) {
   })[character]);
 }
 
-function saveData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+function saveSound() {
+  localStorage.setItem(PREF_KEY, JSON.stringify({sound: data.settings.sound}));
 }
 
-function loadData() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-    if (saved && typeof saved === "object") {
-      data.settings = {...DEFAULT_SETTINGS, ...(saved.settings || {})};
-      if (saved.settings && saved.settings.cooldownUnit !== "seconds") {
-        data.settings.cooldown = 15;
-        data.settings.cooldownUnit = "seconds";
-      }
-      data.requests = Array.isArray(saved.requests) ? saved.requests : [];
-    }
-  } catch (error) {
-    console.warn("Saved tea requester data could not be read.", error);
-  }
+function settingsFromRow(row) {
+  return {
+    open: String(row.opens_at).slice(0, 5),
+    close: String(row.closes_at).slice(0, 5),
+    cooldown: Number(row.cooldown_seconds || 15),
+    cooldownUnit: "seconds",
+    limit: Number(row.daily_limit),
+    enabled: Boolean(row.requests_enabled),
+    hoursOverride: Boolean(row.hours_override),
+    allowanceResetAt: row.allowance_reset_at || null,
+    sound: data.settings.sound
+  };
+}
+
+function requestFromRow(row) {
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    status: row.status,
+    fulfilledAt: row.fulfilled_at
+  };
+}
+
+async function refreshRemoteData() {
+  const [settingsResult, requestsResult] = await Promise.all([
+    supabase.from("tea_settings").select("*").eq("id", 1).single(),
+    supabase.from("tea_requests").select("*").order("created_at", {ascending: true})
+  ]);
+  if (settingsResult.error) throw settingsResult.error;
+  if (requestsResult.error) throw requestsResult.error;
+  data.settings = settingsFromRow(settingsResult.data);
+  data.requests = (requestsResult.data || []).map(requestFromRow);
+  $("sound-enabled").checked = data.settings.sound;
+  render();
+}
+
+async function loadData() {
   try {
     const preferences = JSON.parse(localStorage.getItem(PREF_KEY) || "{}");
     data.settings.sound = Boolean(preferences.sound);
@@ -167,11 +195,21 @@ function loadData() {
     data.settings.sound = false;
   }
   $("sound-enabled").checked = data.settings.sound;
+  await refreshRemoteData();
 }
 
-function saveSound() {
-  localStorage.setItem(PREF_KEY, JSON.stringify({sound: data.settings.sound}));
-  saveData();
+function subscribeToRemoteChanges() {
+  if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+  realtimeChannel = supabase.channel("ginga-tea-live")
+    .on("postgres_changes", {event: "*", schema: "public", table: "tea_settings"}, refreshRemoteData)
+    .on("postgres_changes", {event: "*", schema: "public", table: "tea_requests"}, refreshRemoteData)
+    .subscribe();
+}
+
+async function saveSettingsRow(patch) {
+  const {error} = await supabase.from("tea_settings").update(patch).eq("id", 1);
+  if (error) throw error;
+  await refreshRemoteData();
 }
 
 function playTones(notes) {
@@ -317,34 +355,31 @@ function render() {
   if (admin) renderAdmin();
 }
 
-function submitRequest() {
-  if (!canRequest()) {
-    render();
+async function submitRequest() {
+  const button = $("request-button");
+  button.disabled = true;
+  try {
+    const {error} = await supabase.rpc("submit_tea_request");
+    if (error) throw error;
+    await refreshRemoteData();
+    setPersonality("accepted");
+    playActivation();
+    $("request-heading").textContent = "CONTRACT IN EFFECT";
+    $("request-description").textContent = "Request accepted. Tea is now contractually owed.";
+    $("request-card").classList.add("activated", "just-accepted");
+    button.classList.add("just-pressed");
+    setTimeout(() => {
+      button.classList.remove("just-pressed");
+      $("request-card").classList.remove("just-accepted");
+    }, 850);
+    toast("Tea request accepted. The contract is active.");
+  } catch (error) {
+    await refreshRemoteData().catch(console.error);
     playDenied();
-    toast("REQUEST REJECTED. THE SYSTEM HAS SPOKEN.");
-    return;
+    toast(error.message || "REQUEST REJECTED. THE SYSTEM HAS SPOKEN.");
+  } finally {
+    render();
   }
-
-  const request = {
-    id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + "-" + Math.random().toString(16).slice(2),
-    createdAt: new Date().toISOString(),
-    status: "Pending",
-    fulfilledAt: null
-  };
-  data.requests.push(request);
-  saveData();
-  setPersonality("accepted");
-  playActivation();
-  render();
-  $("request-heading").textContent = "CONTRACT IN EFFECT";
-  $("request-description").textContent = "Request accepted. Tea is now contractually owed.";
-  $("request-card").classList.add("activated", "just-accepted");
-  $("request-button").classList.add("just-pressed");
-  setTimeout(() => {
-    $("request-button").classList.remove("just-pressed");
-    $("request-card").classList.remove("just-accepted");
-  }, 850);
-  toast("Tea request accepted. The contract is active.");
 }
 
 function requestRow(request) {
@@ -447,25 +482,47 @@ function renderAdmin() {
   renderStatistics();
 }
 
-function fulfil(id) {
-  const request = data.requests.find(item => item.id === id);
-  if (!request || request.status !== "Pending") return;
-  request.status = "Fulfilled";
-  request.fulfilledAt = new Date().toISOString();
-  saveData();
-  setPersonality("fulfilled");
-  playFulfilled();
-  render();
-  toast("CONTRACT SATISFIED. DELIVERY CONFIRMED.");
+async function fulfil(id) {
+  try {
+    const {error} = await supabase.rpc("fulfil_tea_request", {p_request_id: id});
+    if (error) throw error;
+    await refreshRemoteData();
+    setPersonality("fulfilled");
+    playFulfilled();
+    toast("CONTRACT SATISFIED. DELIVERY CONFIRMED.");
+  } catch (error) {
+    toast(error.message || "Could not fulfil this request.");
+  }
 }
 
-function openAdmin() {
-  admin = true;
+async function openAdmin() {
   $("request-view").hidden = true;
   $("admin-view").hidden = false;
+  $("admin-console").hidden = true;
+  $("auth-gate").hidden = false;
+  $("login-feedback").textContent = "";
+  const {data: sessionData} = await supabase.auth.getSession();
+  if (sessionData.session) await verifyAdmin(sessionData.session.user);
+}
+
+async function verifyAdmin(user) {
+  const {data: adminRow, error} = await supabase.from("tea_admins")
+    .select("user_id").eq("user_id", user.id).maybeSingle();
+  if (error || !adminRow) {
+    await supabase.auth.signOut();
+    currentUser = null;
+    admin = false;
+    $("login-feedback").textContent = "This account does not have administrator access.";
+    $("auth-gate").hidden = false;
+    $("admin-console").hidden = true;
+    return false;
+  }
+  currentUser = user;
+  admin = true;
   $("auth-gate").hidden = true;
   $("admin-console").hidden = false;
   renderAdmin();
+  return true;
 }
 
 function closeAdmin() {
@@ -475,6 +532,29 @@ function closeAdmin() {
   render();
 }
 
+async function loginAdmin(event) {
+  event.preventDefault();
+  const feedback = $("login-feedback");
+  feedback.textContent = "Signing in...";
+  const {data: authData, error} = await supabase.auth.signInWithPassword({
+    email: $("login-email").value.trim(),
+    password: $("login-password").value
+  });
+  if (error) {
+    feedback.textContent = error.message;
+    return;
+  }
+  const valid = await verifyAdmin(authData.user);
+  if (valid) toast("ADMINISTRATOR ACCESS GRANTED.");
+}
+
+async function logoutAdmin() {
+  await supabase.auth.signOut();
+  currentUser = null;
+  closeAdmin();
+  toast("ADMINISTRATOR SIGNED OUT.");
+}
+
 function switchPanel(name) {
   document.querySelectorAll(".admin-tab").forEach(button =>
     button.classList.toggle("active", button.dataset.panel === name));
@@ -482,64 +562,72 @@ function switchPanel(name) {
     panel.classList.toggle("active", panel.id === "panel-" + name));
 }
 
-function saveSettings(event) {
+async function saveSettings(event) {
   event.preventDefault();
   const open = $("open-time").value;
   const close = $("close-time").value;
   const cooldown = Number($("cooldown-setting").value);
   const limit = Number($("limit-setting").value);
-
   if (!open || !close || open === close || !Number.isInteger(cooldown) ||
       cooldown < 1 || cooldown > 86400 || !Number.isInteger(limit) || limit < 1 || limit > 100) {
     $("settings-feedback").textContent = "Please enter valid hours, cooldown and daily limit.";
     return;
   }
-
-  data.settings.open = open;
-  data.settings.close = close;
-  data.settings.cooldown = cooldown;
-  data.settings.cooldownUnit = "seconds";
-  data.settings.limit = limit;
-  data.settings.sound = $("sound-enabled").checked;
-  settingsDirty = false;
-  saveSound();
-  saveData();
-  $("settings-feedback").textContent = "Rules saved on this device.";
-  render();
-  toast("SYSTEM PARAMETERS UPDATED.");
+  try {
+    await saveSettingsRow({
+      opens_at: open + ":00",
+      closes_at: close + ":00",
+      cooldown_seconds: cooldown,
+      daily_limit: limit
+    });
+    data.settings.sound = $("sound-enabled").checked;
+    saveSound();
+    settingsDirty = false;
+    $("settings-feedback").textContent = "Shared rules saved for every device.";
+    toast("SYSTEM PARAMETERS UPDATED.");
+  } catch (error) {
+    $("settings-feedback").textContent = error.message || "Could not save shared rules.";
+  }
 }
 
-function toggleHoursOverride() {
-  data.settings.hoursOverride = !data.settings.hoursOverride;
-  saveData();
-  render();
-  toast(data.settings.hoursOverride
-    ? "OPENING-HOURS BYPASSED. OTHER REQUEST RULES STILL APPLY."
-    : "NORMAL OPENING HOURS RESTORED.");
+async function toggleHoursOverride() {
+  try {
+    await saveSettingsRow({hours_override: !data.settings.hoursOverride});
+    toast(data.settings.hoursOverride
+      ? "OPENING-HOURS BYPASSED. OTHER REQUEST RULES STILL APPLY."
+      : "NORMAL OPENING HOURS RESTORED.");
+  } catch (error) {
+    toast(error.message || "Could not update opening-hours override.");
+  }
 }
 
-function resetAllowance() {
-  data.settings.allowanceResetAt = new Date().toISOString();
-  saveData();
-  render();
-  toast("DAILY ALLOWANCE RESTORED TO " + data.settings.limit + ". REQUEST HISTORY PRESERVED.");
+async function resetAllowance() {
+  try {
+    await saveSettingsRow({allowance_reset_at: new Date().toISOString()});
+    toast("DAILY ALLOWANCE RESTORED TO " + data.settings.limit + ". REQUEST HISTORY PRESERVED.");
+  } catch (error) {
+    toast(error.message || "Could not reset allowance.");
+  }
 }
 
-function toggleSystem() {
-  data.settings.enabled = !data.settings.enabled;
-  saveData();
-  render();
-  setPersonality(data.settings.enabled ? "ready" : "disabled");
-  toast(data.settings.enabled ? "BEVERAGE OPERATIONS RESTORED." : "BEVERAGE OPERATIONS SUSPENDED.");
-  if (!data.settings.enabled) playDenied();
-  else playTones([[740, 0, .22, "sine"]]);
+async function toggleSystem() {
+  try {
+    await saveSettingsRow({requests_enabled: !data.settings.enabled});
+    setPersonality(data.settings.enabled ? "ready" : "disabled");
+    toast(data.settings.enabled ? "BEVERAGE OPERATIONS RESTORED." : "BEVERAGE OPERATIONS SUSPENDED.");
+    if (!data.settings.enabled) playDenied();
+    else playTones([[740, 0, .22, "sine"]]);
+  } catch (error) {
+    toast(error.message || "Could not update system status.");
+  }
 }
 
 $("request-button").addEventListener("click", submitRequest);
 $("admin-open").addEventListener("click", openAdmin);
 $("admin-back").addEventListener("click", closeAdmin);
 $("admin-back-login").addEventListener("click", closeAdmin);
-$("admin-logout").addEventListener("click", closeAdmin);
+$("admin-logout").addEventListener("click", logoutAdmin);
+$("login-form").addEventListener("submit", loginAdmin);
 $("system-toggle").addEventListener("click", toggleSystem);
 $("hours-override-toggle").addEventListener("click", toggleHoursOverride);
 $("reset-allowance-button").addEventListener("click", resetAllowance);
@@ -580,11 +668,23 @@ $("notification-test").addEventListener("click", async () => {
   feedback.textContent = "Local browser notification sent. Remote push delivery is not available in local-only mode.";
 });
 
-function init() {
-  loadData();
+async function init() {
   setPersonality("ready");
-  render();
-  setInterval(render, 1000);
+  try {
+    await loadData();
+    subscribeToRemoteChanges();
+    setInterval(render, 1000);
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session && admin) closeAdmin();
+    });
+  } catch (error) {
+    console.error("Supabase connection failed:", error);
+    $("request-heading").textContent = "Connection unavailable";
+    $("request-description").textContent = "The tea system could not connect to its shared database. Please refresh in a moment.";
+    $("request-button").disabled = true;
+    $("cooldown-label").textContent = "Offline";
+    $("cooldown-value").textContent = "DATABASE UNAVAILABLE";
+  }
 }
 
 init();
