@@ -1,9 +1,10 @@
 {
-  "name": "Ginga Tea Requester",
-  "short_name": "Tea Requester",
+  "name": "GingaHelp",
+  "short_name": "GingaHelp",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#090d14",
   "theme_color": "#090d14",
   "icons": [
