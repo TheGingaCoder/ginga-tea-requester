@@ -1,2 +1,5 @@
 [functions.send-tea-notification]
 verify_jwt = false
+
+[functions.gingahelp-send-notification]
+verify_jwt = false
