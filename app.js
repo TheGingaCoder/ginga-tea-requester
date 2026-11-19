@@ -1,37 +1,100 @@
-const requests = {
-  tea: {name:"Tea", description:"Request a cuppa.", icon:"fa-mug-hot", action:"Confirm request"},
-  noms: {name:"Noms", description:"Request your crackers.", icon:"fa-cookie-bite", action:"Confirm request"},
-  help: {name:"Help", description:"Ask me to come to you and help.", icon:"fa-hand-holding-heart", action:"Request help"},
-  dog: {name:"Dog", description:"Choose what needs doing.", icon:"fa-paw", action:"Confirm dog request"},
-  hugs: {name:"Hugs", description:"Ask me to come and give you a hug.", icon:"fa-heart", action:"Request a hug"},
-  notify: {name:"Notify", description:"Let me know you're thinking of me.", icon:"fa-bell", action:"Send notification"},
-  scratch: {name:"Scratch + Shoulders", description:"Ask for a massage and a scratch.", icon:"fa-hands", action:"Confirm request"},
-  nits: {name:"Nit Nits", description:"Ask me to pick your spots.", icon:"fa-wand-magic-sparkles", action:"Confirm request"}
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const SUPABASE_URL = "https://goqdqneuwaxoyxyopfdl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ri3ecPVbIE9gsrvggZm-pQ_DeKQ1mUZ";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const requestDefinitions = {
+  tea: { name: "Tea", description: "Request a cuppa.", icon: "fa-mug-hot", action: "Tea requested" },
+  noms: { name: "Noms", description: "Request your crackers.", icon: "fa-cookie-bite", action: "Noms requested" },
+  help: { name: "Help", description: "Ask Luke to come to you and help.", icon: "fa-hand-holding-heart", action: "Help requested" },
+  dog: { name: "Dog", description: "Choose what needs doing.", icon: "fa-paw", action: "Dog request sent" },
+  hugs: { name: "Hugs", description: "Ask Luke to come and give you a hug.", icon: "fa-heart", action: "Hug requested" },
+  notify: { name: "Notify", description: "Let Luke know you're thinking of him.", icon: "fa-bell", action: "Notification sent" },
+  scratch: { name: "Scratch + Shoulders", description: "Ask Luke for a massage and a scratch.", icon: "fa-hands", action: "Scratch + Shoulders requested" },
+  nits: { name: "Nit Nits", description: "Ask Luke to pick Luke's spots.", icon: "fa-wand-magic-sparkles", action: "Nit Nits requested" }
 };
 
-const modal = document.getElementById("request-modal");
+const statusCopy = {
+  active: { title: "SYSTEM ACTIVE", message: "Requests are currently available." },
+  sleep: { title: "SYSTEM STANDBY", message: "The Ginger Is Asleep" },
+  college: { title: "SYSTEM LOCKED", message: "The Ginger Is At College" },
+  away: { title: "SYSTEM INACTIVE", message: "The Ginger Is Not Home" },
+  unavailable: { title: "SYSTEM UNAVAILABLE", message: "GingaHelp cannot confirm its current status." }
+};
+
+const $ = id => document.getElementById(id);
+const modal = $("request-modal");
 const modalCard = modal.querySelector(".request-modal");
-const modalTitle = document.getElementById("modal-title");
-const modalDescription = document.getElementById("modal-description");
-const modalIcon = document.getElementById("modal-icon");
-const modalConfirm = document.getElementById("modal-confirm");
-const modalOptions = document.getElementById("modal-options");
-const dogChoice = document.getElementById("dog-choice");
-const toast = document.getElementById("toast");
+const modalTitle = $("modal-title");
+const modalDescription = $("modal-description");
+const modalIcon = $("modal-icon");
+const modalConfirm = $("modal-confirm");
+const modalOptions = $("modal-options");
+const dogChoice = $("dog-choice");
+const toast = $("toast");
+const statusScreen = $("status-screen");
+const statusTitle = $("status-title");
+const statusMessage = $("status-message");
+
 let activeRequest = null;
+let activeStatus = null;
 let toastTimer = null;
 let previousFocus = null;
 
-function showToast(message) {
+function showToast(message, error = false) {
   toast.textContent = message;
+  toast.classList.toggle("toast-error", error);
   toast.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove("show"), 2400);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 3200);
 }
 
+function applyStatus(status) {
+  activeStatus = statusCopy[status] ? status : "unavailable";
+  const copy = statusCopy[activeStatus];
+  const isActive = activeStatus === "active";
+  statusScreen.hidden = isActive;
+  statusTitle.textContent = copy.title;
+  statusMessage.textContent = copy.message;
+  document.querySelectorAll("[data-request]").forEach(button => {
+    button.disabled = !isActive;
+  });
+  if (!isActive && !modal.hidden) closeModal();
+}
+
+async function loadStatus() {
+  const { data, error } = await supabase
+    .from("gingahelp_status")
+    .select("status")
+    .eq("id", 1)
+    .single();
+
+  if (error || !data) {
+    applyStatus("unavailable");
+    console.error("Could not load GingaHelp status:", error);
+    return;
+  }
+  applyStatus(data.status);
+}
+
+const statusChannel = supabase
+  .channel("gingahelp-public-status")
+  .on("postgres_changes", {
+    event: "*",
+    schema: "public",
+    table: "gingahelp_status",
+    filter: "id=eq.1"
+  }, payload => {
+    const nextStatus = payload.new?.status;
+    if (nextStatus) applyStatus(nextStatus);
+  })
+  .subscribe();
+
 function openModal(type, sourceButton) {
-  const request = requests[type];
-  if (!request) return;
+  const request = requestDefinitions[type];
+  if (!request || activeStatus !== "active") return;
+
   activeRequest = type;
   previousFocus = sourceButton;
   modalCard.className = "request-modal " + type;
@@ -48,11 +111,13 @@ function openModal(type, sourceButton) {
 function closeModal() {
   modal.hidden = true;
   activeRequest = null;
-  if (previousFocus) previousFocus.focus({preventScroll:true});
+  modalConfirm.disabled = false;
+  if (previousFocus && !previousFocus.disabled) previousFocus.focus({ preventScroll: true });
 }
 
 document.querySelectorAll("[data-request]").forEach(button => {
   button.addEventListener("click", () => {
+    if (button.disabled) return;
     button.classList.remove("is-pressed");
     void button.offsetWidth;
     button.classList.add("is-pressed");
@@ -61,8 +126,8 @@ document.querySelectorAll("[data-request]").forEach(button => {
   });
 });
 
-document.getElementById("modal-close").addEventListener("click", closeModal);
-document.getElementById("modal-cancel").addEventListener("click", closeModal);
+$("modal-close").addEventListener("click", closeModal);
+$("modal-cancel").addEventListener("click", closeModal);
 modal.addEventListener("click", event => {
   if (event.target === modal) closeModal();
 });
@@ -70,143 +135,32 @@ document.addEventListener("keydown", event => {
   if (event.key === "Escape" && !modal.hidden) closeModal();
 });
 
-modalConfirm.addEventListener("click", () => {
-  if (!activeRequest) return;
-  const request = requests[activeRequest];
-  const detail = activeRequest === "dog" ? ": " + dogChoice.value : "";
-  const message = activeRequest === "notify"
-    ? "Notification preview: " + request.name
-    : request.name + " request preview" + detail;
-  closeModal();
-  showToast(message);
+modalConfirm.addEventListener("click", async () => {
+  if (!activeRequest || activeStatus !== "active") return;
+
+  const type = activeRequest;
+  const detail = type === "dog" ? dogChoice.value : "";
+  const request = requestDefinitions[type];
+  modalConfirm.disabled = true;
+  modalConfirm.textContent = "SENDING...";
+
+  try {
+    const { data, error } = await supabase.functions.invoke("gingahelp-send-notification", {
+      body: { type, detail }
+    });
+    if (error) throw new Error(data?.error || error.message || "Could not send the request.");
+    if (!data?.sent) throw new Error(data?.message || "No notification device received the request.");
+    closeModal();
+    showToast(request.action + ". Luke has been notified.");
+  } catch (error) {
+    modalConfirm.disabled = false;
+    modalConfirm.textContent = request.action;
+    showToast(error.message || "The request could not be sent.", true);
+  }
 });
 
-
-/* Home-location access control */
-const HOME_STORAGE_KEY = "gingahelp.homeLocation";
-const HOME_RADIUS_METRES = 150;
-const setupScreen = document.getElementById("location-setup");
-const lockoutScreen = document.getElementById("location-lockout");
-const setupButton = document.getElementById("set-home-location");
-const setupFeedback = document.getElementById("setup-feedback");
-const lockoutTitle = document.getElementById("lockout-title");
-const lockoutMessage = document.getElementById("lockout-message");
-const appRoot = document.querySelector("main.app");
-let homeLocation = null;
-let locationWatchId = null;
-
-function showSetup(message = "") {
-  appRoot.hidden = true;
-  lockoutScreen.hidden = true;
-  setupScreen.hidden = false;
-  setupFeedback.textContent = message;
-}
-function showLockout(title = "SYSTEM INACTIVE", message = "The Ginger Is Not Home") {
-  appRoot.hidden = true;
-  setupScreen.hidden = true;
-  lockoutTitle.textContent = title;
-  lockoutMessage.textContent = message;
-  lockoutScreen.hidden = false;
-}
-function showApplication() {
-  setupScreen.hidden = true;
-  lockoutScreen.hidden = true;
-  appRoot.hidden = false;
-}
-function distanceInMetres(a, b) {
-  const toRadians = degrees => degrees * Math.PI / 180;
-  const lat1 = toRadians(a.latitude);
-  const lat2 = toRadians(b.latitude);
-  const deltaLat = toRadians(b.latitude - a.latitude);
-  const deltaLon = toRadians(b.longitude - a.longitude);
-  const value = Math.sin(deltaLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) ** 2;
-  return 6371000 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
-}
-function handleLocation(position) {
-  if (!homeLocation) {
-    showSetup("Home location has not been set.");
-    return;
-  }
-  const current = {
-    latitude: position.coords.latitude,
-    longitude: position.coords.longitude
-  };
-  if (distanceInMetres(homeLocation, current) <= HOME_RADIUS_METRES) {
-    showApplication();
-  } else {
-    showLockout();
-  }
-}
-function handleLocationError(error) {
-  const messages = {
-    1: "Location permission is required. Enable it in your browser settings.",
-    2: "Your location could not be determined. Try again when location is available.",
-    3: "Location check timed out. Please try again."
-  };
-  showLockout("LOCATION UNAVAILABLE", messages[error.code] || "GingaHelp cannot verify that this device is at home.");
-}
-function startLocationMonitoring() {
-  if (!navigator.geolocation) {
-    showLockout("LOCATION UNAVAILABLE", "This device does not support location services.");
-    return;
-  }
-  if (locationWatchId !== null) navigator.geolocation.clearWatch(locationWatchId);
-  showLockout("CHECKING LOCATION", "GingaHelp is verifying this device's location.");
-  locationWatchId = navigator.geolocation.watchPosition(
-    handleLocation,
-    handleLocationError,
-    { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
-  );
-}
-setupButton.addEventListener("click", () => {
-  if (!navigator.geolocation) {
-    setupFeedback.textContent = "This device does not support location services.";
-    return;
-  }
-  setupButton.disabled = true;
-  setupButton.textContent = "DETECTING LOCATION...";
-  setupFeedback.textContent = "Allow location access when prompted.";
-  navigator.geolocation.getCurrentPosition(position => {
-    homeLocation = {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude
-    };
-    try {
-      localStorage.setItem(HOME_STORAGE_KEY, JSON.stringify(homeLocation));
-      setupButton.textContent = "HOME LOCATION SAVED";
-      setupFeedback.textContent = "Checking this device is at home...";
-      startLocationMonitoring();
-    } catch {
-      setupButton.disabled = false;
-      setupButton.textContent = "SET HOME LOCATION";
-      setupFeedback.textContent = "Could not save the home location on this device.";
-    }
-  }, error => {
-    setupButton.disabled = false;
-    setupButton.textContent = "SET HOME LOCATION";
-    setupFeedback.textContent = error.code === 1
-      ? "Location permission was denied. Allow it and try again."
-      : "Could not detect your location. Please try again.";
-  }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
-});
-try {
-  const savedHome = localStorage.getItem(HOME_STORAGE_KEY);
-  if (savedHome) {
-    const parsed = JSON.parse(savedHome);
-    if (Number.isFinite(parsed.latitude) && Number.isFinite(parsed.longitude)) {
-      homeLocation = parsed;
-      startLocationMonitoring();
-    } else {
-      localStorage.removeItem(HOME_STORAGE_KEY);
-      showSetup();
-    }
-  } else {
-    showSetup();
-  }
-} catch {
-  showSetup("Location storage is unavailable in this browser.");
-}
-document.addEventListener("visibilitychange", () => {
-  if (!document.hidden && homeLocation) startLocationMonitoring();
+applyStatus("unavailable");
+loadStatus();
+window.addEventListener("beforeunload", () => {
+  supabase.removeChannel(statusChannel);
 });
