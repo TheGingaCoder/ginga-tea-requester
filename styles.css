@@ -68,3 +68,22 @@ footer span{color:#f04450;padding:0 5px}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 @media(max-height:600px){.request-tile i{width:35px;height:35px;font-size:19px;margin-bottom:3px}.request-tile h2{font-size:12px}.request-tile p{font-size:9px}.request-modal{padding:20px}.modal-icon{width:48px;height:48px;font-size:22px;margin-bottom:10px}}
 @media(prefers-reduced-motion:reduce){.request-tile,.request-modal,.toast{animation:none!important;transition:none!important}}
+
+
+/* Location-based system lockout */
+.location-screen{position:fixed;z-index:100;inset:0;width:100%;height:100dvh;min-height:0;background:#090d14;color:#f4f6fa;display:flex;align-items:center;justify-content:center;padding:24px}
+.location-screen[hidden]{display:none}
+.setup-screen{background:radial-gradient(ellipse at 50% 0%,#1b2b3e 0,transparent 60%),#090d14}
+.location-panel{width:min(100%,420px);text-align:center}
+.location-kicker{font-size:9px;letter-spacing:2px;color:#91a0b4;margin:0 0 16px}
+.location-panel h2{font-size:clamp(20px,5vw,27px);letter-spacing:1px;margin:0 0 14px}
+.location-panel>p:not(.location-kicker):not(.location-feedback){font:14px/1.6 Arial,sans-serif;color:#aeb9c8;margin:0 auto 24px;max-width:340px}
+.location-action{width:100%;min-height:52px;border:1px solid #f5a000;border-radius:10px;background:#f5a000;color:#111;font:700 12px 'Orbitron',sans-serif;letter-spacing:.7px;cursor:pointer}
+.location-action:disabled{opacity:.6;cursor:wait}
+.location-feedback{min-height:18px;margin:14px 0 0;color:#ffbd52;font:12px/1.4 Arial,sans-serif}
+.inactive-screen{flex-direction:column;justify-content:space-between;padding:clamp(22px,6vh,48px) 6%;background:#090d14}
+.hazard-stripe{width:100%;height:clamp(13px,3.5vh,22px);background:repeating-linear-gradient(135deg,#f6a000 0 12px,transparent 12px 24px);clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
+.inactive-message{text-align:center;width:100%}
+.inactive-message h2{font:700 clamp(21px,6vw,34px) 'Orbitron',sans-serif;letter-spacing:.4px;margin:0 0 3px;color:#f4f6fa}
+.inactive-message p{font:clamp(12px,3.5vw,16px) Arial,sans-serif;color:#68717d;margin:0}
+@media(prefers-reduced-motion:reduce){.location-screen *{animation:none!important;transition:none!important}}
