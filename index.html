@@ -52,6 +52,23 @@
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </main>
+  <section class="location-screen setup-screen" id="location-setup" hidden>
+    <div class="location-panel">
+      <p class="location-kicker">GINGAHELP SECURITY</p>
+      <h2>SET HOME LOCATION</h2>
+      <p>Save this device's current location as home. GingaHelp will only operate when this device is detected nearby.</p>
+      <button class="location-action" id="set-home-location" type="button">SET HOME LOCATION</button>
+      <p class="location-feedback" id="setup-feedback" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+  <section class="location-screen inactive-screen" id="location-lockout" hidden>
+    <div class="hazard-stripe" aria-hidden="true"></div>
+    <div class="inactive-message">
+      <h2 id="lockout-title">SYSTEM INACTIVE</h2>
+      <p id="lockout-message">The Ginger Is Not Home</p>
+    </div>
+    <div class="hazard-stripe" aria-hidden="true"></div>
+  </section>
   <script src="./app.js" defer></script>
 </body>
 </html>
