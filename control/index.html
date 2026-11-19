@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090d14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>GingaHelp Control</title>
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./control.css">
+</head>
+<body>
+  <main class="control-shell">
+    <header class="control-header">
+      <div class="brand-mark">G<span>+</span></div>
+      <div><p class="eyebrow">GINGAHELP SYSTEM</p><h1>CONTROL<span> PANEL</span></h1></div>
+      <a href="../" class="back-link">← APP</a>
+    </header>
+
+    <section class="panel auth-panel" id="login-panel">
+      <p class="section-kicker">ADMINISTRATOR ACCESS</p>
+      <h2>Sign in</h2>
+      <p class="support-copy">Sign in with the administrator account already configured for this Supabase project.</p>
+      <form id="login-form">
+        <label for="email">Email address</label>
+        <input id="email" name="email" type="email" autocomplete="username" required>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button class="primary-button" id="login-button" type="submit">Sign in</button>
+      </form>
+      <p class="feedback" id="login-feedback" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="dashboard" id="dashboard" hidden>
+      <div class="welcome-row">
+        <div><p class="section-kicker">SYSTEM MANAGEMENT</p><h2>Operating status</h2></div>
+        <span class="connection-pill" id="connection-pill">CONNECTING</span>
+      </div>
+      <p class="support-copy">Choose the current mode. All open GingaHelp apps will update automatically.</p>
+
+      <div class="status-options" id="status-options">
+        <button class="status-option active-option" type="button" data-status="active">
+          <span class="status-indicator"></span><span class="option-copy"><strong>Active</strong><small>All eight requests available</small></span><i class="fa-solid fa-check"></i>
+        </button>
+        <button class="status-option sleep-option" type="button" data-status="sleep">
+          <span class="status-indicator"></span><span class="option-copy"><strong>Sleep Mode</strong><small>Requests disabled while asleep</small></span><i class="fa-solid fa-moon"></i>
+        </button>
+        <button class="status-option college-option" type="button" data-status="college">
+          <span class="status-indicator"></span><span class="option-copy"><strong>College Mode</strong><small>Requests disabled at college</small></span><i class="fa-solid fa-graduation-cap"></i>
+        </button>
+        <button class="status-option away-option" type="button" data-status="away">
+          <span class="status-indicator"></span><span class="option-copy"><strong>Away Mode</strong><small>Requests disabled while away</small></span><i class="fa-solid fa-house"></i>
+        </button>
+      </div>
+      <p class="feedback" id="status-feedback" role="status" aria-live="polite"></p>
+
+      <section class="panel devices-panel">
+        <p class="section-kicker">PUSH NOTIFICATIONS</p>
+        <h2>Notification devices</h2>
+        <p class="support-copy">Register this device to receive GingaHelp requests, even when the app is closed. Repeat on any other device you want notified.</p>
+        <div class="device-summary" id="device-summary">Checking registered devices…</div>
+        <div class="device-actions">
+          <button class="primary-button" id="register-device" type="button">Register this device</button>
+          <button class="secondary-button" id="test-notification" type="button">Send test notification</button>
+        </div>
+        <p class="feedback" id="device-feedback" role="status" aria-live="polite"></p>
+      </section>
+
+      <div class="dashboard-footer">
+        <span id="signed-in-as"></span>
+        <button class="text-button" id="sign-out" type="button">Sign out</button>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="./control.js"></script>
+</body>
+</html>
