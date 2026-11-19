@@ -152,12 +152,23 @@ Deno.serve(async (req: Request) => {
         });
         sent++;
       } catch (error) {
+        if (error && typeof error === "object" && "response" in error) {
+          const response = (error as { response: Response }).response;
+          const responseBody = await response.clone().text().catch(() => "");
+          const pushHost = new URL(row.endpoint).host;
+          console.error("GingaHelp push delivery failed:", JSON.stringify({
+            host: pushHost,
+            status: response.status,
+            body: responseBody.slice(0, 1000)
+          }));
+        } else {
+          console.error("GingaHelp push delivery failed:", String(error));
+        }
+
         if (error && typeof (error as { isGone?: () => boolean }).isGone === "function" &&
             (error as { isGone: () => boolean }).isGone()) {
           await supabase.from("gingahelp_devices").delete().eq("id", row.id);
           removed++;
-        } else {
-          console.error("GingaHelp push delivery failed:", String(error));
         }
       }
     }
