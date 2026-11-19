@@ -1,0 +1,16 @@
+
+.app-header{position:relative}
+.brand-copy{min-width:0}
+.control-link{margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid #35465b;border-radius:10px;background:#111c29;color:#aebed0;text-decoration:none;font:700 9px 'Orbitron',sans-serif;letter-spacing:1px;white-space:nowrap}
+.control-link i{color:#f04450;font-size:13px}
+.control-link:focus-visible{outline:2px solid #f04450;outline-offset:3px}
+.request-tile:disabled{cursor:not-allowed;filter:saturate(.65);opacity:.86}
+.status-screen{position:fixed;z-index:100;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:clamp(22px,6vh,48px) 6%;background:#090d14;color:#f4f6fa}
+.status-screen[hidden]{display:none}
+.status-kicker{margin:0 0 12px;color:#f6a000;font:9px 'Orbitron',sans-serif;letter-spacing:2px}
+.status-screen .inactive-message{text-align:center;width:100%;margin:auto 0}
+.status-screen .inactive-message h2{font:700 clamp(21px,6vw,34px) 'Orbitron',sans-serif;letter-spacing:.4px;margin:0 0 8px;color:#f4f6fa}
+.status-screen .inactive-message p:last-child{font:clamp(12px,3.5vw,16px) Arial,sans-serif;color:#8793a2;margin:0}
+.toast.toast-error{border-color:#a94a55;background:#321b23;color:#ffe0e3}
+@media(max-width:380px){.control-link{padding:9px;gap:6px;font-size:8px}.app-header{gap:9px}.brand-mark{width:39px;height:39px}}
+@media(prefers-reduced-motion:reduce){.status-screen *{animation:none!important;transition:none!important}}
