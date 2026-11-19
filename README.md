@@ -1,37 +1,48 @@
-# Ginga Tea Requester
+# GingaHelp
 
-A shared multi-device tea request system powered by Supabase.
+GingaHelp is a standalone household assistance app. It uses the existing Supabase project, but all new tables and the notification function are GingaHelp-specific. The legacy Tea Requester tables and notification function are retained and are not used by the GingaHelp frontend.
 
-## Existing backend setup
-1. Run `supabase/schema.sql` if the base tables do not already exist.
-2. Run `supabase/multidevice-migration.sql`.
-3. Create the administrator in Supabase Authentication and add their user ID to `public.tea_admins`.
-4. Deploy the `tea-requester-build` branch with GitHub Pages.
+## App routes
 
-## Web Push notification setup
-1. Run `supabase/push-notifications-migration.sql` in the Supabase SQL Editor.
-2. Generate one VAPID key pair from the repository root with `deno run -A scripts/generate-vapid-keys.ts` (Deno must be installed). Keep this key pair; do not regenerate it after devices have subscribed.
-3. In the generated output, copy the complete `vapidKeys` object into the Supabase Edge Function secret named `VAPID_KEYS_JSON`. Set `VAPID_SUBJECT` to a contact URI such as `mailto:gingacoder@gmail.com`.
-4. Copy `applicationServerKey` from the same output into the `VAPID_PUBLIC_KEY` constant near the top of `app.js`, then commit that change to `tea-requester-build`.
-5. Deploy `supabase/functions/send-tea-notification/index.ts` as an Edge Function named `send-tea-notification`. The function must have JWT verification disabled because the requester page is public; `supabase/config.toml` contains this setting for CLI deployments.
-6. In the admin panel, sign in on each device, open Devices, and select Register this device. Allow notification permission.
+- `/` — the household request app.
+- `/control/` — authenticated administrator panel for changing the operating status and registering notification devices.
 
-On iPhone/iPad, add the site to the Home Screen first, open it from that icon, then register the device. Browser push support depends on the operating system and browser.
+## Operating modes
 
-## Shared behavior
-- Requests, fulfilment status, daily allowance and settings are stored in Supabase.
-- Request acceptance is checked by a database function, including opening hours, master enable switch, pending-request lock, cooldown and daily limit.
-- Supabase Realtime refreshes connected browsers when requests or settings change.
-- A successful new request invokes the Edge Function, which sends Web Push notifications to registered administrator devices.
-- Admin changes and push subscription registration require a signed-in user present in `tea_admins`.
-- Sound preference remains local to each browser.
+- `active` — all eight request buttons are available.
+- `sleep` — requests are disabled.
+- `college` — requests are disabled.
+- `away` — requests are disabled.
 
-## Security
-- The browser contains only the Supabase publishable key and VAPID public key.
-- Keep `VAPID_KEYS_JSON` and all service-role/secret keys in Supabase Edge Function secrets. Never put them in this repository or frontend JavaScript.
-- The notification endpoint only claims a pending request once, preventing repeat sends for the same request.
+Status is stored in `public.gingahelp_status` and sent to connected clients through Supabase Realtime. The main app also checks status on load; the Edge Function independently checks it before sending any request notification.
+
+## GingaHelp database
+
+The schema is in `supabase/gingahelp-migration.sql`. It creates:
+
+- `gingahelp_status` — the single global operating mode.
+- `gingahelp_admins` — GingaHelp administrator allow-list.
+- `gingahelp_devices` — Web Push subscriptions for administrator devices.
+- `gingahelp_rate_limits` — short request throttle fingerprints.
+
+The migration copies the existing administrator user IDs from `tea_admins` into `gingahelp_admins`. It does not modify or query Tea request history, tea settings, or tea device subscriptions.
+
+## Notifications
+
+The separate Edge Function source is `supabase/functions/gingahelp-send-notification/index.ts`. It validates request types, checks that the app is Active, applies a short server-side request throttle, and sends Web Push to registered GingaHelp devices. It does not create request or fulfilment records.
+
+The deployment reuses the VAPID key pair already configured for this Supabase project. Keep `VAPID_KEYS_JSON` in Supabase Edge Function secrets. The matching public key is in `control/control.js`; it is public and may be committed. Never commit private VAPID keys or the service-role key.
+
+## Administrator setup
+
+The current GingaHelp administrator is copied from the existing `tea_admins` record. Sign in at `/control/` with that Supabase Auth account. Status updates and device registration are restricted to this allow-list.
+
+To receive push notifications, sign in on each device, select **Register this device**, and allow notifications. Then use **Send test notification** to verify delivery. For iPhone/iPad, install the app to the Home Screen and open it from there before registering push.
+
+## Deployment
+
+The `tea-requester-build` branch is published through the existing GitHub Pages workflow. Keep all GingaHelp changes on that branch; do not merge them into `main` unless explicitly requested.
 
 ## Limitations
-- A device must support Web Push, have granted notification permission, and have an active internet connection.
-- Notifications are delivered by the browser/platform push service; delivery timing is not guaranteed.
-- If no administrator device is registered when a request is submitted, no push notification is sent for that request.
+
+Web Push requires a supported browser, notification permission, a registered device, and internet connectivity. Delivery timing depends on browser and platform push services. A successful Edge Function response confirms that the push service accepted delivery, not that the operating system displayed it.
