@@ -18,14 +18,14 @@ Status is stored in `public.gingahelp_status` and sent to connected clients thro
 
 ## GingaHelp database
 
-The schema is in `supabase/gingahelp-migration.sql`. It creates:
+The base schema is in `supabase/gingahelp-migration.sql`, followed by the access-hardening migration in `supabase/gingahelp-security-hardening.sql`. Together they create:
 
 - `gingahelp_status` — the single global operating mode.
 - `gingahelp_admins` — GingaHelp administrator allow-list.
 - `gingahelp_devices` — Web Push subscriptions for administrator devices.
 - `gingahelp_rate_limits` — short request throttle fingerprints.
 
-The migration copies the existing administrator user IDs from `tea_admins` into `gingahelp_admins`. It does not modify or query Tea request history, tea settings, or tea device subscriptions.
+The base migration copies the existing administrator user IDs from `tea_admins` into `gingahelp_admins`. The hardening migration puts the admin-check helper in a non-exposed schema and restricts device subscriptions to those administrators. Neither migration modifies Tea request history, tea settings, or tea device subscriptions.
 
 ## Notifications
 
