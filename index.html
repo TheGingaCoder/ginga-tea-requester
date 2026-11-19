@@ -18,24 +18,25 @@
   <main class="app">
     <header class="app-header">
       <div class="brand-mark">G<span>+</span></div>
-      <div><p class="eyebrow">HOUSEHOLD ASSISTANCE SYSTEM</p><h1>GINGA<span>HELP</span></h1></div>
+      <div class="brand-copy"><p class="eyebrow">HOUSEHOLD ASSISTANCE SYSTEM</p><h1>GINGA<span>HELP</span></h1></div>
+      <a class="control-link" href="./control/" aria-label="Open GingaHelp control panel"><i class="fa-solid fa-sliders"></i><span>CONTROL</span></a>
     </header>
     <section class="request-grid" aria-label="Available requests">
-      <button class="request-tile tea" type="button" data-request="tea"><i class="fa-solid fa-mug-hot" aria-hidden="true"></i><h2>Tea</h2><p>Request a cuppa</p></button>
-      <button class="request-tile noms" type="button" data-request="noms"><i class="fa-solid fa-cookie-bite" aria-hidden="true"></i><h2>Noms</h2><p>Request your crackers</p></button>
-      <button class="request-tile help" type="button" data-request="help"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i><h2>Help</h2><p>Come and help me</p></button>
-      <button class="request-tile dog" type="button" data-request="dog"><i class="fa-solid fa-paw" aria-hidden="true"></i><h2>Dog</h2><p>Dog-related requests</p></button>
-      <button class="request-tile hugs" type="button" data-request="hugs"><i class="fa-solid fa-heart" aria-hidden="true"></i><h2>Hugs</h2><p>Come and give me a hug</p></button>
-      <button class="request-tile notify" type="button" data-request="notify"><i class="fa-solid fa-bell" aria-hidden="true"></i><h2>Notify</h2><p>Thinking of you</p></button>
-      <button class="request-tile scratch" type="button" data-request="scratch"><i class="fa-solid fa-hands" aria-hidden="true"></i><h2>Scratch + Shoulders</h2><p>A massage and a scratch</p></button>
-      <button class="request-tile nits" type="button" data-request="nits"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><h2>Nit Nits</h2><p>Pick my spots</p></button>
+      <button class="request-tile tea" type="button" data-request="tea" disabled><i class="fa-solid fa-mug-hot" aria-hidden="true"></i><h2>Tea</h2><p>Request a cuppa</p></button>
+      <button class="request-tile noms" type="button" data-request="noms" disabled><i class="fa-solid fa-cookie-bite" aria-hidden="true"></i><h2>Noms</h2><p>Request your crackers</p></button>
+      <button class="request-tile help" type="button" data-request="help" disabled><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i><h2>Help</h2><p>Come and help me</p></button>
+      <button class="request-tile dog" type="button" data-request="dog" disabled><i class="fa-solid fa-paw" aria-hidden="true"></i><h2>Dog</h2><p>Dog-related requests</p></button>
+      <button class="request-tile hugs" type="button" data-request="hugs" disabled><i class="fa-solid fa-heart" aria-hidden="true"></i><h2>Hugs</h2><p>Come and give me a hug</p></button>
+      <button class="request-tile notify" type="button" data-request="notify" disabled><i class="fa-solid fa-bell" aria-hidden="true"></i><h2>Notify</h2><p>Thinking of you</p></button>
+      <button class="request-tile scratch" type="button" data-request="scratch" disabled><i class="fa-solid fa-hands" aria-hidden="true"></i><h2>Scratch + Shoulders</h2><p>A massage and a scratch</p></button>
+      <button class="request-tile nits" type="button" data-request="nits" disabled><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><h2>Nit Nits</h2><p>Ask Luke to pick his spots</p></button>
     </section>
     <footer>GINGAHELP <span>•</span> EST. 2026</footer>
     <div class="modal-backdrop" id="request-modal" hidden>
       <section class="request-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-description">
         <button class="modal-close" id="modal-close" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
         <div class="modal-icon" id="modal-icon"><i class="fa-solid fa-mug-hot"></i></div>
-        <p class="eyebrow" id="modal-eyebrow">NEW REQUEST</p>
+        <p class="eyebrow">NEW REQUEST</p>
         <h2 id="modal-title">Tea</h2>
         <p id="modal-description">Request a cuppa.</p>
         <div id="modal-options" class="modal-options" hidden>
@@ -47,28 +48,20 @@
             <option value="Bring from outside">Bring from outside</option>
           </select>
         </div>
-        <div class="modal-actions"><button class="modal-secondary" id="modal-cancel" type="button">Cancel</button><button class="modal-confirm" id="modal-confirm" type="button">Confirm request</button></div>
+        <div class="modal-actions"><button class="modal-secondary" id="modal-cancel" type="button">Cancel</button><button class="modal-confirm" id="modal-confirm" type="button">Send request</button></div>
       </section>
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </main>
-  <section class="location-screen setup-screen" id="location-setup" hidden>
-    <div class="location-panel">
-      <p class="location-kicker">GINGAHELP SECURITY</p>
-      <h2>SET HOME LOCATION</h2>
-      <p>Save this device's current location as home. GingaHelp will only operate when this device is detected nearby.</p>
-      <button class="location-action" id="set-home-location" type="button">SET HOME LOCATION</button>
-      <p class="location-feedback" id="setup-feedback" role="status" aria-live="polite"></p>
-    </div>
-  </section>
-  <section class="location-screen inactive-screen" id="location-lockout" hidden>
+  <section class="status-screen" id="status-screen" hidden>
     <div class="hazard-stripe" aria-hidden="true"></div>
     <div class="inactive-message">
-      <h2 id="lockout-title">SYSTEM INACTIVE</h2>
-      <p id="lockout-message">The Ginger Is Not Home</p>
+      <p class="status-kicker">GINGAHELP STATUS</p>
+      <h2 id="status-title">SYSTEM INACTIVE</h2>
+      <p id="status-message">The Ginger Is Not Home</p>
     </div>
     <div class="hazard-stripe" aria-hidden="true"></div>
   </section>
-  <script src="./app.js" defer></script>
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
