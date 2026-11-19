@@ -147,7 +147,7 @@ Deno.serve(async (req: Request) => {
       try {
         await applicationServer.subscribe(subscription).pushTextMessage(payload, {
           ttl: 3600,
-          urgency: "high",
+          urgency: webpush.Urgency.High,
           topic: "gingahelp"
         });
         sent++;
