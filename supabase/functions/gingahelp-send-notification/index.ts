@@ -18,14 +18,19 @@ const corsHeaders = (origin: string | null) => {
 };
 
 const requestTypes: Record<string, { title: string; body: (detail: string) => string }> = {
-  tea: { title: "Tea", body: () => "Someone has requested a cuppa." },
-  noms: { title: "Noms", body: () => "Someone has requested their crackers." },
-  help: { title: "Help", body: () => "Someone needs you to come and help them." },
-  dog: { title: "Dog", body: detail => "Dog request: " + detail },
-  hugs: { title: "Hugs", body: () => "Someone would like you to come and give them a hug." },
-  notify: { title: "Notify", body: () => "Someone is thinking of you." },
-  scratch: { title: "Scratch + Shoulders", body: () => "Someone has requested a massage and a scratch." },
-  nits: { title: "Nit Nits", body: () => "Mum requests that Luke picks his spots." },
+  tea: { title: "Tea", body: () => "Mum has requested a cuppa" },
+  noms: { title: "Noms", body: () => "Mum has requested crackers" },
+  help: { title: "Help", body: () => "Mum has requested your assistance" },
+  dog: { title: "Dog", body: detail => ({
+    "Give water": "Mum has requested that you give water to the dog",
+    "Give food": "Mum has requested that you feed the dog",
+    "Let outside": "Mum has requested that you let the dog out",
+    "Bring from outside": "Mum has requested that you bring the dog in"
+  })[detail] },
+  hugs: { title: "Hugs", body: () => "Mum wants some hugs <3" },
+  notify: { title: "Notify", body: () => "Mum is thinking about you <3" },
+  scratch: { title: "Scratch + Shoulders", body: () => "Mum is requesting a massage and scratch" },
+  nits: { title: "Nit Nits", body: () => "Mum would like to pick your spots!" },
   test: { title: "Test notification", body: () => "GingaHelp notifications are working on this device." }
 };
 
@@ -99,7 +104,10 @@ Deno.serve(async (req: Request) => {
         .eq("id", 1)
         .single();
 
-      if (stateError || state?.status !== "active") {
+      const requestAllowed = type === "notify"
+        ? ["active", "college", "away"].includes(state?.status)
+        : state?.status === "active";
+      if (stateError || !requestAllowed) {
         return jsonResponse({ error: "GingaHelp is not currently accepting requests." }, 409, headers);
       }
 
