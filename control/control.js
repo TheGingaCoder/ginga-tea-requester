@@ -8,7 +8,11 @@ const $ = id => document.getElementById(id);
 
 let currentUser = null;
 let currentStatus = null;
+let currentManualOverride = false;
 let statusChannel = null;
+let exclusionChannel = null;
+let currentCollegeWeekStart = null;
+let currentWeekExcluded = false;
 let authHandled = false;
 
 function feedback(element, message, isError = false) {
@@ -23,8 +27,9 @@ function setConnection(text, online = true) {
   pill.style.color = online ? "#84d9b6" : "#f2a17e";
 }
 
-function renderStatus(status) {
+function renderStatus(status, manualOverride = currentManualOverride) {
   currentStatus = status;
+  currentManualOverride = Boolean(manualOverride);
   document.querySelectorAll("[data-status]").forEach(button => {
     const selected = button.dataset.status === status;
     button.classList.toggle("selected", selected);
@@ -56,6 +61,7 @@ async function verifyAndShow(user) {
     $("dashboard").hidden = false;
     $("signed-in-as").textContent = "Signed in as " + (user.email || "administrator");
     await loadStatus();
+    await loadCollegeWeek();
     await loadDevices();
     subscribeToStatus();
   } catch (error) {
@@ -70,7 +76,7 @@ async function verifyAndShow(user) {
 async function loadStatus() {
   const { data, error } = await supabase
     .from("gingahelp_status")
-    .select("status")
+    .select("status, manual_override")
     .eq("id", 1)
     .single();
 
@@ -79,9 +85,11 @@ async function loadStatus() {
     feedback($("status-feedback"), error?.message || "Could not load status.", true);
     return;
   }
-  renderStatus(data.status);
+  renderStatus(data.status, data.manual_override);
   setConnection("LIVE");
-  feedback($("status-feedback"), "Current status: " + data.status + ".");
+  feedback($("status-feedback"), data.manual_override
+    ? "Current status: " + data.status + " (manual override). Select Active to resume the automatic timetable."
+    : "Current status: " + data.status + " (automatic timetable).");
 }
 
 function subscribeToStatus() {
@@ -92,18 +100,29 @@ function subscribeToStatus() {
       event: "*", schema: "public", table: "gingahelp_status", filter: "id=eq.1"
     }, payload => {
       if (payload.new?.status) {
-        renderStatus(payload.new.status);
-        feedback($("status-feedback"), "Status updated on this device.");
+        renderStatus(payload.new.status, payload.new.manual_override);
+        feedback($("status-feedback"), payload.new.manual_override
+          ? "Status updated manually."
+          : "Automatic timetable updated the status.");
       }
     })
     .subscribe(state => {
       setConnection(state === "SUBSCRIBED" ? "LIVE" : state, state === "SUBSCRIBED");
     });
+
+  if (exclusionChannel) supabase.removeChannel(exclusionChannel);
+  exclusionChannel = supabase
+    .channel("gingahelp-college-week-exclusions")
+    .on("postgres_changes", {
+      event: "*", schema: "public", table: "gingahelp_college_excluded_weeks"
+    }, () => loadCollegeWeek())
+    .subscribe();
 }
 
 async function changeStatus(status, button) {
   if (!currentUser || !["active", "sleep", "college", "away"].includes(status)) return;
-  if (status === currentStatus) return;
+  const nextManualOverride = status !== "active";
+  if (status === currentStatus && nextManualOverride === currentManualOverride) return;
 
   document.querySelectorAll("[data-status]").forEach(item => item.disabled = true);
   feedback($("status-feedback"), "Updating system status…");
@@ -111,6 +130,7 @@ async function changeStatus(status, button) {
     .from("gingahelp_status")
     .update({
       status,
+      manual_override: nextManualOverride,
       updated_at: new Date().toISOString(),
       updated_by: currentUser.id
     })
@@ -121,8 +141,84 @@ async function changeStatus(status, button) {
     feedback($("status-feedback"), error.message || "Status update failed.", true);
     return;
   }
-  renderStatus(status);
-  feedback($("status-feedback"), "Status changed to " + button.querySelector("strong").textContent + ". All connected apps are being updated.");
+  renderStatus(status, nextManualOverride);
+  feedback($("status-feedback"), nextManualOverride
+    ? "Manual override set to " + button.querySelector("strong").textContent + ". Select Active to resume the automatic timetable."
+    : "Automatic timetable resumed. The scheduled status will refresh within one minute.");
+}
+
+function getCurrentCollegeWeekStart() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/London", year: "numeric", month: "2-digit", day: "2-digit"
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  const localDate = new Date(Date.UTC(Number(values.year), Number(values.month) - 1, Number(values.day)));
+  const day = localDate.getUTCDay() || 7;
+  localDate.setUTCDate(localDate.getUTCDate() - day + 1);
+  return localDate.toISOString().slice(0, 10);
+}
+
+function formatWeekDate(dateString) {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC", day: "numeric", month: "short", year: "numeric"
+  }).format(new Date(dateString + "T00:00:00Z"));
+}
+
+async function loadCollegeWeek() {
+  const button = $("exclude-college-week");
+  if (!button) return;
+  currentCollegeWeekStart = getCurrentCollegeWeekStart();
+  const weekEnd = new Date(currentCollegeWeekStart + "T00:00:00Z");
+  weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
+  const { data, error } = await supabase
+    .from("gingahelp_college_excluded_weeks")
+    .select("week_start")
+    .eq("week_start", currentCollegeWeekStart)
+    .maybeSingle();
+
+  if (error) {
+    button.disabled = true;
+    $("college-week-summary").textContent = "Could not load the current week's exclusion status.";
+    feedback($("college-week-feedback"), error.message, true);
+    return;
+  }
+
+  currentWeekExcluded = Boolean(data);
+  const range = formatWeekDate(currentCollegeWeekStart) + " – " + formatWeekDate(weekEnd.toISOString().slice(0, 10));
+  $("college-week-summary").textContent = currentWeekExcluded
+    ? "Excluded: " + range + ". Automatic College Mode will stay off for this week."
+    : "Not excluded: " + range + ". The normal College timetable applies.";
+  button.textContent = currentWeekExcluded
+    ? "Restore College schedule for this week"
+    : "Exclude this college week";
+  button.disabled = false;
+  button.setAttribute("aria-pressed", String(currentWeekExcluded));
+}
+
+async function toggleCollegeWeekExclusion() {
+  if (!currentUser || !currentCollegeWeekStart) return;
+  const button = $("exclude-college-week");
+  button.disabled = true;
+  feedback($("college-week-feedback"), currentWeekExcluded
+    ? "Restoring the College schedule…"
+    : "Excluding this College week…");
+
+  const result = currentWeekExcluded
+    ? await supabase.from("gingahelp_college_excluded_weeks")
+        .delete().eq("week_start", currentCollegeWeekStart)
+    : await supabase.from("gingahelp_college_excluded_weeks")
+        .insert({ week_start: currentCollegeWeekStart, created_by: currentUser.id });
+
+  if (result.error) {
+    feedback($("college-week-feedback"), result.error.message || "Could not update this week's exclusion.", true);
+    button.disabled = false;
+    return;
+  }
+
+  await loadCollegeWeek();
+  feedback($("college-week-feedback"), currentWeekExcluded
+    ? "This week is excluded. The automatic status will refresh within one minute."
+    : "The normal College timetable has been restored for this week.");
 }
 
 function urlBase64ToUint8Array(base64String) {
@@ -234,11 +330,14 @@ $("login-form").addEventListener("submit", async event => {
 document.querySelectorAll("[data-status]").forEach(button => {
   button.addEventListener("click", () => changeStatus(button.dataset.status, button));
 });
+$("exclude-college-week").addEventListener("click", toggleCollegeWeekExclusion);
 $("register-device").addEventListener("click", registerDevice);
 $("test-notification").addEventListener("click", sendTestNotification);
 $("sign-out").addEventListener("click", async () => {
   if (statusChannel) await supabase.removeChannel(statusChannel);
+  if (exclusionChannel) await supabase.removeChannel(exclusionChannel);
   statusChannel = null;
+  exclusionChannel = null;
   await supabase.auth.signOut();
   currentUser = null;
   $("dashboard").hidden = true;
@@ -252,7 +351,9 @@ supabase.auth.onAuthStateChange((event, session) => {
     $("dashboard").hidden = true;
     $("login-panel").hidden = false;
     if (statusChannel) supabase.removeChannel(statusChannel);
+    if (exclusionChannel) supabase.removeChannel(exclusionChannel);
     statusChannel = null;
+    exclusionChannel = null;
   }
 });
 
