@@ -117,7 +117,7 @@ function closeModal() {
   modal.hidden = true;
   activeRequest = null;
   modalConfirm.disabled = false;
-  if (previousFocus && !previousFocus.disabled) previousFocus.focus({ preventScroll: true });
+  if (previousFocus && !previousFocus.disabled && !previousFocus.hidden) previousFocus.focus({ preventScroll: true });
 }
 
 document.querySelectorAll("[data-request]").forEach(button => {
