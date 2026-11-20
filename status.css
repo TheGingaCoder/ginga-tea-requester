@@ -14,3 +14,16 @@
 .toast.toast-error{border-color:#a94a55;background:#321b23;color:#ffe0e3}
 @media(max-width:380px){.control-link{padding:9px;gap:6px;font-size:8px}.app-header{gap:9px}.brand-mark{width:39px;height:39px}}
 @media(prefers-reduced-motion:reduce){.status-screen *{animation:none!important;transition:none!important}}
+
+.status-screen{--status-accent:#f6a000}
+.status-screen[data-status="sleep"]{--status-accent:#b49aff}
+.status-screen[data-status="college"]{--status-accent:#e7c95b}
+.status-screen[data-status="away"]{--status-accent:#f6a000}
+.status-screen[data-status="unavailable"]{--status-accent:#f04450}
+.status-screen .hazard-stripe{background:repeating-linear-gradient(135deg,var(--status-accent) 0 12px,transparent 12px 24px)}
+.status-screen .status-kicker{color:var(--status-accent)}
+.status-notify-button{display:block;margin:28px auto 0;min-width:190px;min-height:52px;padding:12px 20px;border:1px solid var(--status-accent);border-radius:12px;background:color-mix(in srgb,var(--status-accent) 18%,#101722);color:#fff;font:700 11px 'Orbitron',sans-serif;letter-spacing:1px;cursor:pointer}
+.status-notify-button[hidden]{display:none}
+.status-notify-button i{margin-right:9px;color:var(--status-accent)}
+.status-control-link{display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:10px 14px;border:1px solid #35465b;border-radius:10px;background:#111c29;color:#aebed0;text-decoration:none;font:700 9px 'Orbitron',sans-serif;letter-spacing:1px}
+.status-control-link i{color:var(--status-accent)}
