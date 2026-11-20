@@ -27,3 +27,7 @@
 .status-notify-button i{margin-right:9px;color:var(--status-accent)}
 .status-control-link{display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:10px 14px;border:1px solid #35465b;border-radius:10px;background:#111c29;color:#aebed0;text-decoration:none;font:700 9px 'Orbitron',sans-serif;letter-spacing:1px}
 .status-control-link i{color:var(--status-accent)}
+
+/* Keep the request dialog and its feedback above the locked status screen. */
+.modal-backdrop{z-index:110}
+.toast{z-index:120}
