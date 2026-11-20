@@ -36,6 +36,7 @@ const toast = $("toast");
 const statusScreen = $("status-screen");
 const statusTitle = $("status-title");
 const statusMessage = $("status-message");
+const statusNotifyButton = $("status-notify");
 
 let activeRequest = null;
 let activeStatus = null;
@@ -57,10 +58,13 @@ function applyStatus(status) {
   statusScreen.hidden = isActive;
   statusTitle.textContent = copy.title;
   statusMessage.textContent = copy.message;
+  statusScreen.dataset.status = activeStatus;
+  const canNotify = activeStatus === "college" || activeStatus === "away";
+  statusNotifyButton.hidden = !canNotify;
   document.querySelectorAll("[data-request]").forEach(button => {
     button.disabled = !isActive;
   });
-  if (!isActive && !modal.hidden) closeModal();
+  if (!isActive && !modal.hidden && !(activeRequest === "notify" && canNotify)) closeModal();
 }
 
 async function loadStatus() {
@@ -93,7 +97,8 @@ const statusChannel = supabase
 
 function openModal(type, sourceButton) {
   const request = requestDefinitions[type];
-  if (!request || activeStatus !== "active") return;
+  const canSend = activeStatus === "active" || (type === "notify" && ["college", "away"].includes(activeStatus));
+  if (!request || !canSend) return;
 
   activeRequest = type;
   previousFocus = sourceButton;
@@ -126,6 +131,8 @@ document.querySelectorAll("[data-request]").forEach(button => {
   });
 });
 
+statusNotifyButton.addEventListener("click", () => openModal("notify", statusNotifyButton));
+
 $("modal-close").addEventListener("click", closeModal);
 $("modal-cancel").addEventListener("click", closeModal);
 modal.addEventListener("click", event => {
@@ -136,7 +143,8 @@ document.addEventListener("keydown", event => {
 });
 
 modalConfirm.addEventListener("click", async () => {
-  if (!activeRequest || activeStatus !== "active") return;
+  const canSend = activeStatus === "active" || (activeRequest === "notify" && ["college", "away"].includes(activeStatus));
+  if (!activeRequest || !canSend) return;
 
   const type = activeRequest;
   const detail = type === "dog" ? dogChoice.value : "";
