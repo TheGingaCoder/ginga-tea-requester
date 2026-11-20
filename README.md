@@ -12,24 +12,32 @@ GingaHelp is a standalone household assistance app. It uses the existing Supabas
 - `active` — all eight request buttons are available.
 - `sleep` — requests are disabled.
 - `college` — requests are disabled.
-- `away` — requests are disabled.
+- `away` — requests are disabled, except Notify.
+
+The automatic timetable uses UK local time (including GMT/BST changes): Sleep every day from 00:00–07:00, and College Monday–Friday from 07:30–18:00. Outside those windows the status is Active. A weekly College exclusion skips the College window for that Monday–Sunday week.
+
+The Control Panel has an **Exclude this college week** button. It adds the current Monday–Sunday week to the exclusion list; the button changes to restore the normal schedule if the week is already excluded. The scheduler checks every minute, so status changes are applied automatically even when the app is closed.
+
+Choosing Sleep, College, or Away manually sets a manual override. Selecting Active clears the override and resumes the automatic timetable. Notify is available during College and Away, but not Sleep; all other requests remain disabled.
 
 Status is stored in `public.gingahelp_status` and sent to connected clients through Supabase Realtime. The main app also checks status on load; the Edge Function independently checks it before sending any request notification.
 
 ## GingaHelp database
 
-The base schema is in `supabase/gingahelp-migration.sql`, followed by the access-hardening migration in `supabase/gingahelp-security-hardening.sql`. Together they create:
+The base schema is in `supabase/gingahelp-migration.sql`, followed by the access-hardening migration in `supabase/gingahelp-security-hardening.sql`, then the automatic timetable migration in `supabase/gingahelp-schedule-migration.sql`. These create:
 
 - `gingahelp_status` — the single global operating mode.
 - `gingahelp_admins` — GingaHelp administrator allow-list.
 - `gingahelp_devices` — Web Push subscriptions for administrator devices.
 - `gingahelp_rate_limits` — short request throttle fingerprints.
+- `gingahelp_college_excluded_weeks` — Monday dates for excluded College weeks.
+- `gingahelp-auto-status` — the once-per-minute Supabase Cron job that updates the operating mode.
 
 The base migration copies the existing administrator user IDs from `tea_admins` into `gingahelp_admins`. The hardening migration puts the admin-check helper in a non-exposed schema and restricts device subscriptions to those administrators. Neither migration modifies Tea request history, tea settings, or tea device subscriptions.
 
 ## Notifications
 
-The separate Edge Function source is `supabase/functions/gingahelp-send-notification/index.ts`. It validates request types, checks that the app is Active, applies a short server-side request throttle, and sends Web Push to registered GingaHelp devices. It does not create request or fulfilment records.
+The separate Edge Function source is `supabase/functions/gingahelp-send-notification/index.ts`. It validates request types, checks that the current mode permits the request (Notify is also allowed in College and Away), applies a short server-side request throttle, and sends Web Push to registered GingaHelp devices. It does not create request or fulfilment records.
 
 The deployment reuses the VAPID key pair already configured for this Supabase project. Keep `VAPID_KEYS_JSON` in Supabase Edge Function secrets. The matching public key is in `control/control.js`; it is public and may be committed. Never commit private VAPID keys or the service-role key.
 
