@@ -48,3 +48,8 @@ button:disabled{opacity:.55;cursor:wait}
 .text-button{padding:8px 0;border:0;background:none;color:#f07d86;font:700 10px 'Orbitron',sans-serif;cursor:pointer}
 @media(max-width:440px){.control-shell{padding-top:16px}.panel{padding:19px}.device-actions{grid-template-columns:1fr}.status-option{min-height:70px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.schedule-panel{margin-top:22px}
+.week-summary{margin:0 0 13px;padding:12px 13px;border:1px solid #2e4054;border-radius:10px;background:#0b131d;color:#c3cedb;font:12px/1.5 Arial,sans-serif}
+.week-exclusion-button{width:100%;border-color:#716333;background:#302c1b;color:#f5e9b5}
+.week-exclusion-button:hover:not(:disabled){border-color:#e7c95b}
