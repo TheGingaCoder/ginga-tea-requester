@@ -42,13 +42,25 @@
         <h2 id="modal-title">Tea</h2>
         <p id="modal-description">Request a cuppa.</p>
         <div id="modal-options" class="modal-options" hidden>
-          <label for="dog-choice">What do you need?</label>
-          <select id="dog-choice">
-            <option value="Give water">Give water</option>
-            <option value="Give food">Give food</option>
-            <option value="Let outside">Let outside</option>
-            <option value="Bring from outside">Bring from outside</option>
-          </select>
+          <div id="dog-options" hidden>
+            <label for="dog-choice">What do you need?</label>
+            <select id="dog-choice">
+              <option value="Give water">Give water</option>
+              <option value="Give food">Give food</option>
+              <option value="Let outside">Let outside</option>
+              <option value="Bring from outside">Bring from outside</option>
+            </select>
+          </div>
+          <div id="help-options" hidden>
+            <label for="help-choice">What do you need help with?</label>
+            <select id="help-choice">
+              <option value="Help Me">Help Me</option>
+              <option value="Hoover House">Hoover House</option>
+              <option value="Do Laundry">Do Laundry</option>
+              <option value="Do Dishwasher">Do Dishwasher</option>
+              <option value="Make Dinner">Make Dinner</option>
+            </select>
+          </div>
         </div>
         <div class="modal-actions"><button class="modal-secondary" id="modal-cancel" type="button">Cancel</button><button class="modal-confirm" id="modal-confirm" type="button">Send request</button></div>
       </section>
