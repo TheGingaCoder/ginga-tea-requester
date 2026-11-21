@@ -20,7 +20,13 @@ const corsHeaders = (origin: string | null) => {
 const requestTypes: Record<string, { title: string; body: (detail: string) => string }> = {
   tea: { title: "Tea", body: () => "Mum has requested a cuppa" },
   noms: { title: "Noms", body: () => "Mum has requested crackers" },
-  help: { title: "Help", body: () => "Mum has requested your assistance" },
+  help: { title: "Help", body: detail => ({
+    "Help Me": "Mum has requested your assistance",
+    "Hoover House": "Mum has requested that you hoover the house",
+    "Do Laundry": "Mum has requested that you do the laundry",
+    "Do Dishwasher": "Mum has requested that you do the dishwasher",
+    "Make Dinner": "Mum has requested that you make dinner"
+  })[detail] },
   dog: { title: "Dog", body: detail => ({
     "Give water": "Mum has requested that you give water to the dog",
     "Give food": "Mum has requested that you feed the dog",
@@ -35,6 +41,7 @@ const requestTypes: Record<string, { title: string; body: (detail: string) => st
 };
 
 const dogChoices = new Set(["Give water", "Give food", "Let outside", "Bring from outside"]);
+const helpChoices = new Set(["Help Me", "Hoover House", "Do Laundry", "Do Dishwasher", "Make Dinner"]);
 
 async function sha256(value: string): Promise<string> {
   const bytes = new TextEncoder().encode(value);
@@ -66,6 +73,9 @@ Deno.serve(async (req: Request) => {
     if (!definition) return jsonResponse({ error: "Unknown request type." }, 400, headers);
     if (type === "dog" && !dogChoices.has(detail)) {
       return jsonResponse({ error: "Choose a valid dog request." }, 400, headers);
+    }
+    if (type === "help" && !helpChoices.has(detail)) {
+      return jsonResponse({ error: "Choose a valid help request." }, 400, headers);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
