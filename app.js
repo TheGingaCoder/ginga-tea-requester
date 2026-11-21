@@ -32,6 +32,7 @@ const modalIcon = $("modal-icon");
 const modalConfirm = $("modal-confirm");
 const modalOptions = $("modal-options");
 const dogChoice = $("dog-choice");
+const helpChoice = $("help-choice");
 const toast = $("toast");
 const statusScreen = $("status-screen");
 const statusTitle = $("status-title");
@@ -107,8 +108,11 @@ function openModal(type, sourceButton) {
   modalDescription.textContent = request.description;
   modalIcon.innerHTML = '<i class="fa-solid ' + request.icon + '" aria-hidden="true"></i>';
   modalConfirm.textContent = request.action;
-  modalOptions.hidden = type !== "dog";
+  modalOptions.hidden = !["dog", "help"].includes(type);
+  $("dog-options").hidden = type !== "dog";
+  $("help-options").hidden = type !== "help";
   if (type === "dog") dogChoice.selectedIndex = 0;
+  if (type === "help") helpChoice.selectedIndex = 0;
   modal.hidden = false;
   modalConfirm.focus();
 }
@@ -147,7 +151,7 @@ modalConfirm.addEventListener("click", async () => {
   if (!activeRequest || !canSend) return;
 
   const type = activeRequest;
-  const detail = type === "dog" ? dogChoice.value : "";
+  const detail = type === "dog" ? dogChoice.value : type === "help" ? helpChoice.value : "";
   const request = requestDefinitions[type];
   modalConfirm.disabled = true;
   modalConfirm.textContent = "SENDING...";
